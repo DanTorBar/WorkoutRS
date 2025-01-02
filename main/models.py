@@ -40,8 +40,8 @@ class Gender(models.Model):
         return self.name
 
 
-class BodyParts(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="Body Parts")
+class BodyPart(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Body Part")
 
     def __str__(self):
         return self.name
@@ -69,7 +69,7 @@ class Workout(models.Model):
     workoutCategory = models.ForeignKey(WorkoutCategory, on_delete=models.SET_NULL, null=True, verbose_name="Workout Category")
     level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True, verbose_name="Level")
     gender = models.ForeignKey(Gender, on_delete=models.SET_NULL, null=True, verbose_name="Gender")
-    bodyParts = models.ManyToManyField(BodyParts, verbose_name="Body Parts")
+    bodyPart = models.ManyToManyField(BodyPart, verbose_name="Body Part")
     description = models.TextField(verbose_name="Description")
 
     # Relación con Ejercicios para cada día

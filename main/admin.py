@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from .models import Categoria, CategoriaEjercicio, Musculo, Etiqueta, Nivel, Genero, ParteCuerpo, Ejercicio
+from .models import BodyPart, Exercise, ExerciseCategory, Gender, Level, Muscle, Tag, WorkoutCategory
 
-admin.site.register(Categoria)
-admin.site.register(CategoriaEjercicio)
-admin.site.register(Musculo)
-admin.site.register(Etiqueta)
-admin.site.register(Nivel)
-admin.site.register(Genero)
-admin.site.register(ParteCuerpo)
-admin.site.register(Ejercicio)
+admin.site.register(BodyPart)
+admin.site.register(Exercise)
+admin.site.register(ExerciseCategory)
+admin.site.register(Gender)
+admin.site.register(Level)
+admin.site.register(Muscle)
+admin.site.register(Tag)
+admin.site.register(WorkoutCategory)
