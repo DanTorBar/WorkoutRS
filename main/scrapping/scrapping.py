@@ -121,8 +121,9 @@ def extraer_rutinas_y_ejercicios():
             l = l[:-1]
             i = 0
             
-            muscles = set()
-
+            workout_l = []
+            exercise_l = []
+            
             for r in l:
                 i += 1
                 link = r.find_next("td", attrs={"valign": "bottom"}).find_next("a")["href"]
@@ -252,7 +253,7 @@ def extraer_rutinas_y_ejercicios():
 
                                     if id_ not in id_exercises:
                                         store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions, tags)
-                                        # print((id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions, tags))
+                                        exercise_l.append((id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions, tags))
                                         id_exercises.add(id_)
 
                                     exercises_workout[numday-1].append(id_)
@@ -260,8 +261,7 @@ def extraer_rutinas_y_ejercicios():
                                 except Exception as e:
                                     print(f"Error al procesar el enlace {link}: {e}")
                     
-                    print(muscles)
-                    # print(workoutName, workoutCategory, level, gender, bodyPart, description, exercises_workout[0], exercises_workout[1], exercises_workout[2], exercises_workout[3], exercises_workout[4], exercises_workout[5], exercises_workout[6])
+                    workout_l.append((workoutName, workoutCategory, level, gender, bodyPart, description, exercises_workout[0], exercises_workout[1], exercises_workout[2], exercises_workout[3], exercises_workout[4], exercises_workout[5], exercises_workout[6]))
                     store_workout(workoutName, workoutCategory, level, gender, bodyPart, description, exercises_workout)
                     print("Se han cargado "+str(i)+" rutinas de un total de "+str(len(l)))
                 
@@ -275,7 +275,6 @@ def extraer_rutinas_y_ejercicios():
         print(f"Error en la solicitud POST: {e}")
 
     print("Datos de rutinas y ejercicios almacenados en la base de datos.")
-
-
+    
 if __name__ == "__main__":
     extraer_rutinas_y_ejercicios()
