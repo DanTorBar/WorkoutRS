@@ -60,18 +60,18 @@ def store_workout(workoutName, workoutCategory, level, gender, bodyPart, descrip
     for day, exercises in enumerate(days, start=1):
         for exercise_id in exercises:
             exercise = Exercise.objects.get(idExercise=exercise_id)
-            getattr(workout, f'dia_{day}').add(exercise)
+            getattr(workout, f'day{day}').add(exercise)
 
     workout.save()
     print(f"Rutina '{workoutName}' almacenada.")
-    print(workout.__dict__)
-    print("Día 1: ", workout.dia_1.all())
-    print("Día 2: ", workout.dia_2.all())
-    print("Día 3: ", workout.dia_3.all())
-    print("Día 4: ", workout.dia_4.all())
-    print("Día 5: ", workout.dia_5.all())
-    print("Día 6: ", workout.dia_6.all())
-    print("Día 7: ", workout.dia_7.all())
+    # print(workout.__dict__)
+    # print("Día 1: ", workout.dia_1.all())
+    # print("Día 2: ", workout.dia_2.all())
+    # print("Día 3: ", workout.dia_3.all())
+    # print("Día 4: ", workout.dia_4.all())
+    # print("Día 5: ", workout.dia_5.all())
+    # print("Día 6: ", workout.dia_6.all())
+    # print("Día 7: ", workout.dia_7.all())
     print("---------------------")
 
 
@@ -123,7 +123,7 @@ def extraer_rutinas_y_ejercicios():
             
             muscles = set()
 
-            for r in l[:20]:
+            for r in l:
                 i += 1
                 link = r.find_next("td", attrs={"valign": "bottom"}).find_next("a")["href"]
                 
