@@ -18,16 +18,6 @@ django.setup()
 from main.models import Exercise, Workout
 from main.scrapping.scrapping import extraer_rutinas_y_ejercicios
 
-
-
-def cargar():
-    if index.exists_in("Index"):
-        respuesta = messagebox.askyesno(title="Confirmar",message="EL ÍNDICE YA EXISTE. \nEsta seguro que quiere recargar los datos?. \nEsta operación puede ser lenta")
-        if respuesta:
-            almacenar_datos()
-    else:
-        almacenar_datos()
-            
  
 def almacenar_datos():
 
