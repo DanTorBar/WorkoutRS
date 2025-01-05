@@ -11,24 +11,15 @@
   </head>
   <body>
   
-    <h1>EJERCICIO DE RS COLABORATIVOS - MOVIELENS 100K</h1>
+    <h1 style="text-align:center; margin-top:20px">RUTINAS Y EJERCICIOS</h1>
     <nav class="uk-navbar-container" uk-navbar>
       <div class="uk-navbar-left">
         <ul class="uk-navbar-nav">
           <li class="uk-active"><a href="#">Inicio</a>
             <div class="uk-navbar-dropdown">
               <ul class="uk-nav uk-navbar-dropdown-nav">
+                <li><a href="/">Inicio</a></li>
                 <li><a id="populate" href="#">Poblar Base de Datos e indexar</a></li>
-                <li><a href="/loadRS">Cargar el Sistema de Recomendaci&oacute;n</a></li>
-                <li><a href="/index.html">Sobre</a></li>
-              </ul>
-            </div>
-          </li>
-          <li><a href="#">Ejercicios</a>
-            <div class="uk-navbar-dropdown">
-              <ul class="uk-nav uk-navbar-dropdown-nav">
-                <li><a href="/buscar_ejercicios">Buscar ejercicios</a></li>
-                <li><a href="/buscar_ejercicio_nombre_instrucciones">Buscar ejercicio por término en nombre o instrucciones</a></li>
               </ul>
             </div>
           </li>
@@ -40,13 +31,21 @@
               </ul>
             </div>
           </li>
+          <li><a href="#">Ejercicios</a>
+            <div class="uk-navbar-dropdown">
+              <ul class="uk-nav uk-navbar-dropdown-nav">
+                <li><a href="/buscar_ejercicios">Buscar ejercicios</a></li>
+                <li><a href="/buscar_ejercicio_nombre_instrucciones">Buscar ejercicio por término en nombre o instrucciones</a></li>
+              </ul>
+            </div>
+          </li>
         </ul>
       </div>
     </nav>
     
     <hr>
     
-    <h1>{% block titulo %} {% endblock %}</h1>
+    <h1 style="text-align:center;">{% block titulo %} {% endblock %}</h1>
 
     <div class="loading-div">
         <span id="loading-text" class="loading-text">Cargando...</span>

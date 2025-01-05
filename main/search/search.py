@@ -141,11 +141,49 @@ def ej_buscar(name, cat, muscle):
         # Construye la consulta de forma dinámica
         query_parts = []
         if name:
-            query_parts.append(f'exerciseName:"{name}"')
+            query_parts.append(f'(exerciseName:"{name}" OR exerciseName:*"{name}"*)')
         if cat:
             query_parts.append(f'(exerciseCategory:"{cat}" OR exerciseCategory:*"{cat}"*)')
         if muscle:
-            query_parts.append(f'(priMuscles:*"{muscle}"* OR secMuscles:*"{muscle}"*)')
+            query_parts.append(f'((priMuscles:*"{muscle}"* OR secMuscles:"{muscle}") OR (priMuscles:"{muscle}" OR secMuscles:"{muscle}"))')
+
+        # Combina las partes de la consulta
+        if query_parts:
+            query_string = " AND ".join(query_parts)
+        else:
+            query_string = "*:*"  # Devuelve todos los documentos si no hay términos de búsqueda
+
+        try:
+            query = parser.parse(query_string)
+            results = searcher.search(query, limit=100)
+            result_list = [dict(result) for result in results]
+            return result_list
+        except Exception as e:
+            print(f"Error parsing query: {e}")
+            return []
+
+
+def ru_buscar(name, cat, level, gender):
+    try:
+        ix = open_dir("IndexRutina")
+    except Exception as e:
+        print(f"Error opening index: {e}")
+        return []
+
+    with ix.searcher() as searcher:
+        fields = ["workoutName", "workoutCategory", "level", "gender"]
+        parser = MultifieldParser(fields, schema=ix.schema, group=OrGroup)
+
+        # Construye la consulta de forma dinámica
+        query_parts = []
+        if name:
+            query_parts.append(f'(workoutName:"{name}"* OR workoutName:"{name}")')
+        if cat:
+            query_parts.append(f'(workoutCategory:"{cat}" OR workoutCategory:*"{cat}"*)')
+        if level:
+            query_parts.append(f'level:{level}')
+        if gender:
+            query_parts.append(f'gender:{gender}')
 
         # Combina las partes de la consulta
         if query_parts:
@@ -158,13 +196,25 @@ def ej_buscar(name, cat, muscle):
             print(f"Constructed query: {query}")
             results = searcher.search(query, limit=100)
             result_list = [dict(result) for result in results]
-            print(f"Search results: {result_list}")
+            print(f"Search results: {len(result_list)}")
             return result_list
         except Exception as e:
             print(f"Error parsing query: {e}")
             return []
     
-    
+def ru_buscar_nombre_descripcion(cadena):
+    try:
+        ix = open_dir("IndexRutina")
+    except IndexError:
+        return []
+
+    with ix.searcher() as searcher:
+        query = MultifieldParser(["workoutName", "description"], ix.schema).parse(f'"{cadena}"*')
+        results = searcher.search(query, limit=100)
+        result_list = [dict(result) for result in results]
+        
+    return result_list
+
     
 def buscar_caracteristicas_titulo():
     def mostrar_lista(event):

@@ -1,5 +1,5 @@
 <div class="row">
-    {% for ejercicio in items %}
+    {% for rutina in items %}
     <div class="card mb-4 shadow-sm" style="justify-items: center;">
         <div class="card-body" style="
             display: flex;
@@ -13,8 +13,9 @@
             border: 1px solid;
             border-radius: 10px;
         ">
+
             <div class="card-text" style="justify-items: center; padding-top: 10px;">
-                <h4 class="card-title"><a style="color:black" href='/ejercicio/{{ejercicio.idExercise}}'>{{ ejercicio.exerciseName }}</a></h4>
+                <h4 class="card-title"><a style="color:black" href='/rutina/{{rutina.link}}'>{{ rutina.workoutName }}</a></h4>
                 <hr style="
                     width: 50vh;
                     border-top: 1px solid black;
@@ -26,39 +27,25 @@
             ">
                 <div style="
                     align-self: center;
+                    max-width: 25vh;
                 ">
-                    <strong>Categoría:</strong> {{ ejercicio.exerciseCategory }}<br>
+                    <strong>Categoría:</strong> {{ rutina.workoutCategory }}<br>
                 </div>
                 <p class="card-info">
-                    <strong>Músculos principales:</strong> {{ ejercicio.priMuscles|default:"N/A" }}<br>
-                    {% if ejercicio.secMuscles %}
-                        <strong>Músculos secundarios:</strong> {{ ejercicio.secMuscles|default:"N/A" }}
+                    <strong>Nivel:</strong> 
+                    {% if rutina.level %}
+                        {{ rutina.level|default:"N/A" }}<br>
                     {% endif %}
-                </p>
-                <div style="
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                ">
-                    {% if ejercicio.video %}
-                        <a href="{{ ejercicio.video }}" class="btn btn-sm btn-info" target="_blank">Ver video</a>
-                    {% endif %}
-                    <a class="instrucciones-a" href="#">Ver instrucciones</a>
 
-                    <div class="instrucciones-overlay overlay" style="display: none;">
-                        <div class="loading-div instrucciones-div" style="
-                        display: none;
-                        background-color: white;
-                        padding-inline: 20px;
-                        padding-top: 20px;
-                        border: 1px solid;
-                        border-radius: 8px;
-                        font-size: 18px;
-                        box-shadow: 0 0 9px 4px #b3b3b3;">
-                            <p class="instrucciones-text">{{ ejercicio.instructions }}</p>
-                        </div>
-                    </div>
-                </div>
+
+                </p>
+                <p class="card-info">
+                    <strong>Género:</strong> 
+                    {% if rutina.gender %}
+                        {{ rutina.gender|default:"N/A" }}
+                    {% endif %}
+
+                </p>
             </div>
         </div>
     </div>

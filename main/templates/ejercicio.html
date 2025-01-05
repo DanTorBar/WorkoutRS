@@ -1,0 +1,59 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Detalles del Ejercicio {% endblock %}
+
+{% block contenido %}
+<br>
+
+<div class="card mb-4 shadow-sm" style="justify-items: center;">
+    <div class="card-body" style="
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        background-color: #e7e7e7;
+        padding: 10px;
+        width: 90%;
+        flex-direction: column;
+        padding-inline: 30px;
+        border: 1px solid;
+        border-radius: 10px;
+    ">
+        <div style="
+            position: absolute;
+            right: 60px;
+            top: 345px;">
+            <a href="javascript:history.back()">Atrás</a>
+        </div>
+        <div class="card-text" style="justify-items: center; padding-top: 10px;">
+            <h4 class="card-title">{{ ejercicio.exerciseName }}</h4>
+            <hr style="
+                width: 50vh;
+                border-top: 1px solid black;
+            ">
+        </div>
+        <div class="info" style="
+            display: flex;
+            justify-content: space-between;
+        ">
+            <div style="
+                align-self: center;
+            ">
+                <strong>Categoría:</strong> {{ ejercicio.exerciseCategory|default:"N/A" }}<br>
+                <strong>Músculos principales:</strong> {{ ejercicio.priMuscles.all|join:", "|default:"N/A" }}<br>
+                <strong>Músculos secundarios:</strong> {{ ejercicio.secMuscles.all|join:", "|default:"N/A" }}<br>
+                <strong>Video:</strong> {% if ejercicio.video %}<a href="{{ ejercicio.video }}" target="_blank">Ver video</a>{% else %}N/A{% endif %}<br>
+            </div>
+        </div>
+        <div class="info" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        ">
+            <br><br>
+            <strong>Instrucciones:</strong>
+            <p>{{ ejercicio.instructions|default:"N/A" }}</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
