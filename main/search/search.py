@@ -4,10 +4,10 @@ from tkinter import messagebox
 import os, shutil, sys
 from whoosh.index import create_in, open_dir
 from whoosh.fields import Schema, TEXT, KEYWORD, ID, STORED
-from whoosh.qparser import QueryParser, MultifieldParser
+from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
 from whoosh import query
 from tkinter import messagebox
-from whoosh import index
+from whoosh.analysis import KeywordAnalyzer
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'WorkoutRS.settings')
@@ -22,30 +22,29 @@ from main.scrapping.scrapping import extraer_rutinas_y_ejercicios
 def almacenar_datos():
 
     esquema_rutina = Schema(
-        nombre=TEXT(stored=True, phrase=True),
-        categoria=KEYWORD(stored=True, commas=True, lowercase=True),
-        nivel=KEYWORD(stored=True, commas=True, lowercase=True),
-        genero=KEYWORD(stored=True, commas=True, lowercase=True),
-        partes_cuerpo=KEYWORD(stored=True, commas=True, lowercase=True),
-        descripcion=TEXT(stored=True, phrase=True),
-        ejercicios1=STORED,
-        ejercicios2=STORED,
-        ejercicios3=STORED,
-        ejercicios4=STORED,
-        ejercicios5=STORED,
-        ejercicios6=STORED,
-        ejercicios7=STORED
+        workoutName=TEXT(stored=True, phrase=True),
+        workoutCategory=TEXT(analyzer=KeywordAnalyzer(), stored=True),
+        level=KEYWORD(stored=True, commas=True, lowercase=True),
+        gender=KEYWORD(stored=True, commas=True, lowercase=True),
+        bodyPart=TEXT(analyzer=KeywordAnalyzer(), stored=True),
+        description=TEXT(stored=True, phrase=True),
+        day1=STORED,
+        day2=STORED,
+        day3=STORED,
+        day4=STORED,
+        day5=STORED,
+        day6=STORED,
+        day7=STORED
     )
 
     esquema_ejercicio = Schema(
-        id=ID(stored=True, unique=True),
-        nombre=TEXT(stored=True, phrase=True),
-        categoria=KEYWORD(stored=True, commas=True, lowercase=True),
-        musculoPri=KEYWORD(stored=True, commas=True, lowercase=True),
-        musculoSec=KEYWORD(stored=True, commas=True, lowercase=True),
+        idExercise=ID(stored=True, unique=True),
+        exerciseName=TEXT(stored=True, phrase=True),
+        exerciseCategory=TEXT(analyzer=KeywordAnalyzer(), stored=True),
+        priMuscles=TEXT(analyzer=KeywordAnalyzer(), stored=True),
+        secMuscles=TEXT(analyzer=KeywordAnalyzer(), stored=True),
         video=TEXT(stored=True, phrase=False),
-        instrucciones=TEXT(stored=True, phrase=True),
-        etiquetas=KEYWORD(stored=True, commas=True, lowercase=True)
+        instructions=TEXT(stored=True, phrase=True),
     )
 
     # Eliminar directorios de índices si existen
@@ -77,60 +76,96 @@ def almacenar_datos():
     # Añadir ejercicios al índice
     for ejercicio in lista_ejercicios:
         writer_ejercicio.add_document(
-            id=str(ejercicio.idExercise),  # Acceder al id del ejercicio
-            nombre=str(ejercicio.exerciseName),
-            categoria=str(ejercicio.exerciseCategory),
-            musculoPri=[str(musculo.name) for musculo in ejercicio.priMuscles.all()],  # Obtener los músculos primarios
-            musculoSec=[str(musculo.name) for musculo in ejercicio.secMuscles.all()],  # Obtener los músculos secundarios
+            idExercise=str(ejercicio.idExercise),  # Acceder al id del ejercicio
+            exerciseName=str(ejercicio.exerciseName),
+            exerciseCategory=str(ejercicio.exerciseCategory),
+            priMuscles=",".join([str(musculo.name) for musculo in ejercicio.priMuscles.all()]),
+            secMuscles=",".join([str(musculo.name) for musculo in ejercicio.secMuscles.all()]),
             video=str(ejercicio.video) if ejercicio.video else '',  # Verificar si hay video
-            instrucciones=str(ejercicio.instructions) if ejercicio.instructions else '',  # Verificar si hay instrucciones
-            etiquetas=str(ejercicio.tags) if ejercicio.tags else ''  # Verificar si hay etiquetas
+            instructions=str(ejercicio.instructions) if ejercicio.instructions else '',  # Verificar si hay instrucciones
         )
         print(f"Se ha añadido el ejercicio {ejercicio.exerciseName} al índice")
 
     # Añadir rutinas al índice
     for rutina in lista_rutinas:
         writer_rutina.add_document(
-            nombre=str(rutina.workoutName),
-            categoria=str(rutina.workoutCategory),
-            nivel=str(rutina.level),
-            genero=str(rutina.gender),
-            partes_cuerpo=str(rutina.bodyPart),
-            descripcion=str(rutina.description) if rutina.description else '',  # Verificar si hay descripción
-            ejercicios1=[str(ejercicio.idExercise) for ejercicio in rutina.day1.all()],
-            ejercicios2=[str(ejercicio.idExercise) for ejercicio in rutina.day2.all()],
-            ejercicios3=[str(ejercicio.idExercise) for ejercicio in rutina.day3.all()],
-            ejercicios4=[str(ejercicio.idExercise) for ejercicio in rutina.day4.all()],
-            ejercicios5=[str(ejercicio.idExercise) for ejercicio in rutina.day5.all()],
-            ejercicios6=[str(ejercicio.idExercise) for ejercicio in rutina.day6.all()],
-            ejercicios7=[str(ejercicio.idExercise) for ejercicio in rutina.day7.all()]
+            workoutName=str(rutina.workoutName),
+            workoutCategory=str(rutina.workoutCategory),
+            level=str(rutina.level),
+            gender=str(rutina.gender),
+            bodyPart=str(rutina.bodyPart),
+            description=str(rutina.description) if rutina.description else '',  # Verificar si hay descripción
+            day1=[str(ejercicio.idExercise) for ejercicio in rutina.day1.all()],
+            day2=[str(ejercicio.idExercise) for ejercicio in rutina.day2.all()],
+            day3=[str(ejercicio.idExercise) for ejercicio in rutina.day3.all()],
+            day4=[str(ejercicio.idExercise) for ejercicio in rutina.day4.all()],
+            day5=[str(ejercicio.idExercise) for ejercicio in rutina.day5.all()],
+            day6=[str(ejercicio.idExercise) for ejercicio in rutina.day6.all()],
+            day7=[str(ejercicio.idExercise) for ejercicio in rutina.day7.all()]
         )
         print(f"Se ha añadido la rutina {rutina.workoutName} al índice")
     # Commit writers
     writer_ejercicio.commit()
     writer_rutina.commit()
-
-    messagebox.showinfo("Fin de indexado", f"Se han indexado los {len(lista_ejercicios)} ejercicios y {len(lista_rutinas)} rutinas")
-
-
-def ej_buscar_nombre_decripcion():
-    def mostrar_lista(event):
-        ix=open_dir("IndexEjercicio")
-        with ix.searcher() as searcher:
-            query = MultifieldParser(["nombre","descripcion"], ix.schema).parse(f'"{en.get()}"')
-
-            results = searcher.search(query, limit=10)
-            listar_titulo_introduccion(results)
     
-    v = Toplevel()
-    v.title("Busqueda por Título o Introducción")
-    l = Label(v, text="Introduzca las palabras a buscar:")
-    l.pack(side=LEFT)
-    en = Entry(v)
-    en.bind("<Return>", mostrar_lista)
-    en.pack(side=LEFT)
-        
+    mensaje = f"Se han añadido {len(lista_ejercicios)} ejercicios y {len(lista_rutinas)} rutinas a los índices"
+    
+    return mensaje
 
+
+def ej_buscar_nombre_instrucciones(cadena):
+    try:
+        ix = open_dir("IndexEjercicio")
+    except IndexError:
+        return []  # Devuelve una lista vacía si no se puede abrir el índice
+
+    with ix.searcher() as searcher:
+        query = MultifieldParser(["exerciseName", "instructions"], ix.schema).parse(f'"{cadena}"')
+        results = searcher.search(query, limit=100)
+        result_list = [dict(result) for result in results]
+        
+    return result_list
+
+
+def ej_buscar(name, cat, muscle):
+    try:
+        ix = open_dir("IndexEjercicio")
+    except Exception as e:
+        print(f"Error opening index: {e}")
+        return []
+
+    with ix.searcher() as searcher:
+        fields = ["exerciseName", "exerciseCategory", "priMuscles", "secMuscles"]
+        parser = MultifieldParser(fields, schema=ix.schema, group=OrGroup)
+
+        # Construye la consulta de forma dinámica
+        query_parts = []
+        if name:
+            query_parts.append(f'exerciseName:"{name}"')
+        if cat:
+            query_parts.append(f'(exerciseCategory:"{cat}" OR exerciseCategory:*"{cat}"*)')
+        if muscle:
+            query_parts.append(f'(priMuscles:*"{muscle}"* OR secMuscles:*"{muscle}"*)')
+
+        # Combina las partes de la consulta
+        if query_parts:
+            query_string = " AND ".join(query_parts)
+        else:
+            query_string = "*:*"  # Devuelve todos los documentos si no hay términos de búsqueda
+
+        try:
+            query = parser.parse(query_string)
+            print(f"Constructed query: {query}")
+            results = searcher.search(query, limit=100)
+            result_list = [dict(result) for result in results]
+            print(f"Search results: {result_list}")
+            return result_list
+        except Exception as e:
+            print(f"Error parsing query: {e}")
+            return []
+    
+    
+    
 def buscar_caracteristicas_titulo():
     def mostrar_lista(event):
         ix=open_dir("Index")      
@@ -223,4 +258,6 @@ def ventana_principal():
     
 
 if __name__ == "__main__":
-    almacenar_datos()
+    # ru_buscar(name="Single", cat="Thighs", level="aaa", bodyPart="bbb", gender="male")
+    ej_buscar(name="", cat="Running", muscle="")
+    # almacenar_datos()

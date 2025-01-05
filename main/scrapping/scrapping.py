@@ -21,7 +21,7 @@ if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
  getattr(ssl, '_create_unverified_context', None)):
     ssl._create_default_https_context = ssl._create_unverified_context
 
-def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions, tags):
+def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions):
     primary_muscles = [Muscle.objects.get_or_create(name=muscle)[0] for muscle in priMuscles.split(',')]
     secondary_muscles = [Muscle.objects.get_or_create(name=muscle)[0] for muscle in secMuscles.split(',')]
 
@@ -32,7 +32,6 @@ def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, 
             "exerciseCategory": exerciseCategory,
             "video": video,
             "instructions": instructions,
-            "tags": tags,
         }
     )
     if created:
@@ -245,15 +244,9 @@ def extraer_rutinas_y_ejercicios():
                                     else:
                                         instructions = "N/A"
                                     
-                                    if s.find("span", class_="hLower", string=re.compile("Tags:")):
-                                        tags = s.find("span", class_="hLower", string=re.compile("Tags:")).string.strip()
-                                        tags = ",".join([p.strip() for p in bodyPart.split(",")])
-                                    else:
-                                        tags = "N/A"
-
                                     if id_ not in id_exercises:
-                                        store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions, tags)
-                                        exercise_l.append((id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions, tags))
+                                        store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions)
+                                        exercise_l.append((id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions))
                                         id_exercises.add(id_)
 
                                     exercises_workout[numday-1].append(id_)

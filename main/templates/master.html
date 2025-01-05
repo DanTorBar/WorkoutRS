@@ -1,0 +1,91 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html lang='es'>
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="{% static 'css/uikit.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/master.css' %}" />
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/uikit.min.js' %}"></script>
+  </head>
+  <body>
+  
+    <h1>EJERCICIO DE RS COLABORATIVOS - MOVIELENS 100K</h1>
+    <nav class="uk-navbar-container" uk-navbar>
+      <div class="uk-navbar-left">
+        <ul class="uk-navbar-nav">
+          <li class="uk-active"><a href="#">Inicio</a>
+            <div class="uk-navbar-dropdown">
+              <ul class="uk-nav uk-navbar-dropdown-nav">
+                <li><a id="populate" href="#">Poblar Base de Datos e indexar</a></li>
+                <li><a href="/loadRS">Cargar el Sistema de Recomendaci&oacute;n</a></li>
+                <li><a href="/index.html">Sobre</a></li>
+              </ul>
+            </div>
+          </li>
+          <li><a href="#">Ejercicios</a>
+            <div class="uk-navbar-dropdown">
+              <ul class="uk-nav uk-navbar-dropdown-nav">
+                <li><a href="/buscar_ejercicios">Buscar ejercicios</a></li>
+                <li><a href="/buscar_ejercicio_nombre_instrucciones">Buscar ejercicio por término en nombre o instrucciones</a></li>
+              </ul>
+            </div>
+          </li>
+          <li><a href="#">Rutinas</a>
+            <div class="uk-navbar-dropdown">
+              <ul class="uk-nav uk-navbar-dropdown-nav">
+                <li><a href="/buscar_rutinas">Buscar rutinas</a></li>
+                <li><a href="/buscar_rutina_nombre_descripcion">Buscar rutina por término en nombre o descripción</a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <hr>
+    
+    <h1>{% block titulo %} {% endblock %}</h1>
+
+    <div class="loading-div">
+        <span id="loading-text" class="loading-text">Cargando...</span>
+        <span id="loading" class="loading-spinner"></span>
+    </div>
+    <div id="overlay" class="overlay" style="display: none;"></div>
+    {% block contenido %}
+    {% endblock %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const populate = document.getElementById('populate');
+          const loading = document.querySelector('.loading-div');
+  
+          if (populate) {
+            populate.addEventListener('click', function(event) {
+              event.preventDefault();
+              if (confirm("Estás seguro de que quieres poblar la base de datos e indexar?\nEste proceso puede tardar varios minutos.")) {
+                document.getElementById('overlay').style.display = 'block';
+                loading.style.display = 'grid';
+                fetch('/populate')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        loading.style.display = 'none';
+                        document.getElementById('overlay').style.display = 'none';
+                        alert(data.mensaje);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        loading.style.display = 'none';
+                        document.getElementById('overlay').style.display = 'none';
+                        alert(data.mensaje);
+                    })
+                    ;
+            }
+            });
+          }
+        });
+      </script>
+    </body>
+</html>
