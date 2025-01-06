@@ -21,9 +21,11 @@ def search_ex(request):
     name = ""
     exerciseCategory = "Seleccionar"
     muscle = "N/A"
+    esPost = False
     if request.method == 'POST':
         formulario = ExerciseSearchForm(request.POST)
-        
+        esPost = True
+
         if formulario.is_valid():
             name = formulario.cleaned_data['name']
             exerciseCategory = formulario.cleaned_data['exerciseCategory']
@@ -34,14 +36,14 @@ def search_ex(request):
                 muscle = ""
 
             items = ej_buscar(name=name, cat=exerciseCategory, muscle=muscle)
-            
+
     datos = {
         'name': name,
         'exerciseCategory': exerciseCategory,
         'muscle': muscle,
     }
     
-    return render(request, 'buscar_ejercicios.html', {'formulario':formulario, 'items': items, 'datos': datos, 'STATIC_URL':settings.STATIC_URL})
+    return render(request, 'buscar_ejercicios.html', {'formulario':formulario, 'items': items, 'datos': datos, 'esPost': esPost,'STATIC_URL':settings.STATIC_URL})
 
     
 
@@ -88,12 +90,14 @@ def exercise_detail(request, id):
 def search_wt(request):
     formulario = WorkoutSearchForm()
     items = None
+    esPost = False
     name = ""
     workoutCategory = "Seleccionar"
     level = "N/A"
     gender = "N/A"
 
     if request.method == 'POST':
+        esPost = True
         formulario = WorkoutSearchForm(request.POST)
         
         if formulario.is_valid():
@@ -113,6 +117,7 @@ def search_wt(request):
             
             for i in items:
                 i['link'] = i.get('workoutName', 'N/A').replace(' ', '_').lower()
+    
             
     datos = {
         'name': name,
@@ -121,7 +126,7 @@ def search_wt(request):
         'gender': gender
     }
     
-    return render(request, 'buscar_rutinas.html', {'formulario':formulario, 'items': items, 'datos': datos, 'STATIC_URL':settings.STATIC_URL})
+    return render(request, 'buscar_rutinas.html', {'formulario':formulario, 'items': items, 'datos': datos, 'esPost':esPost, 'STATIC_URL':settings.STATIC_URL})
 
     
 

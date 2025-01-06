@@ -17,7 +17,7 @@
 
 {% if items %}
     {% include 'lista_ejercicios.html' %}
-{% else %}
+{% elif esPost %}
     <p class="text-muted">No se encontraron ejercicios que coincidan con los filtros seleccionados.</p>
 {% endif %}
 

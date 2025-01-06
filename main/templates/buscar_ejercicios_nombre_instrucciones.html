@@ -16,10 +16,10 @@
 <hr>
 
 {% if items %}
-    <h4 class="mt-4">Ejercicios que contienen el término "<span style="font-style: italic">{{ termino }}</span>" en el nombre o en las instrucciones:</h4>
+    <h4 class="mt-4">Ejercicios que contienen el término <span style="font-style: italic">{{ termino }}</span> en el nombre o en las instrucciones:</h4>
     {% include 'lista_ejercicios.html' %}
-{% else %}
-    <p class="text-muted">No se encontraron ejercicios que coincidan con el término "<span style="font-style: italic">{{ termino }}</span>".</p>
+{% elif termino != None %}
+    <p class="text-muted">No se encontraron ejercicios que coincidan con el término <span style="font-style: italic">{{ termino }}</span>.</p>
 {% endif %}
 
 {% endblock %}
