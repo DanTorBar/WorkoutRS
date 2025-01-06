@@ -1,0 +1,42 @@
+Ejercicio
+
+- nombre
+- categoría (KW)
+- musculoPri (KW) - op
+- musculoSec (KW) - op
+- video		  - op
+- instrucciones
+- etiquetas (KW)  - op
+
+
+Rutina
+
+- nombre
+- categoría (KW)
+- nivel     (KW)
+- genero    (KW)
+- partes del cuerpo (KEYWORD)
+- descripción
+- ejercicios1 -> Ejercicio
+- ejercicios2 -> Ejercicio
+- ejercicios3 -> Ejercicio
+- ejercicios4 -> Ejercicio
+- ejercicios5 -> Ejercicio
+- ejercicios6 -> Ejercicio
+- ejercicios7 -> Ejercicio
+
+$env:PYTHONPATH = "C:\Users\danit\Desktop\Proyecto WorkoutRS\WorkoutRS"
+
+
+APLICACIÓN
+
+- Carga de datos (bbdd e indexado)
+- Lista de rutinas (Nombre, categoría, nivel, género)
+	- filtrado: name y cat* y nivel* y genero* y bodyPart*, nombre o inst (limit=10)
+
+- Lista de ejercicios (Nombre, Categoria, musculoPri)
+	- filtrado: name y cat* y musculos(pri o sec)* y etiquetas*
+
+- detalles rutina
+
+- detalles ejercicio

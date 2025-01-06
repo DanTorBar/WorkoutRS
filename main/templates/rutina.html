@@ -1,0 +1,81 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Detalles de la Rutina {% endblock %}
+
+
+{% block contenido %}
+<br>
+
+<div class="card mb-4 shadow-sm" style="justify-items: center;">
+    <div class="card-body" style="
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        background-color: #e7e7e7;
+        padding: 10px;
+        width: 90%;
+        flex-direction: column;
+        padding-inline: 30px;
+        border: 1px solid;
+        border-radius: 10px;
+    ">
+        <div style="
+        position: fixed;
+        right: 11vh;
+        top: 38vh;">
+            <a href="javascript:history.back()">Atrás</a>
+        </div>
+        <div class="card-text" style="justify-items: center; padding-top: 10px;">
+            <h4 class="card-title">{{ rutina.workoutName }}</h4>
+            <hr style="
+                width: 50vh;
+                border-top: 1px solid black;
+            ">
+        </div>
+        <div class="info" style="
+            display: flex;
+            justify-content: space-between;
+        ">
+            <div style="
+                align-self: center;
+            ">
+                <strong>Categoría:</strong> {{ rutina.workoutCategory }}<br>
+                <strong>Nivel:</strong> {{ rutina.level|default:"N/A" }}<br>
+                <strong>Género:</strong> {{ rutina.gender|default:"N/A" }}<br>
+                <strong>Partes del cuerpo:</strong> {{ rutina.bodyPart|default:"N/A" }}<br>
+                <strong>Descripción:</strong> {{ rutina.description|default:"N/A" }}<br>
+            </div>
+        </div>
+        <div class="info" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        ">
+            <br><br>
+            {% for day in days %}
+                {% if day|length > 0 %}
+                    <div class="table-container" style="margin-bottom: 20px;">
+                        <table class="table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #f8f9fa; text-align: left; border-bottom: 2px solid #dee2e6;">
+                                    <th style="padding: 10px; font-weight: bold;">Día {{ forloop.counter }}</th>
+                                    <th style="padding: 10px; font-weight: bold;">Ejercicio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exercise in day %}
+                                    <tr style="border-bottom: 1px solid #dee2e6;">
+                                        <td style="padding: 10px; color: #495057;"></td>
+                                        <td style="padding: 10px; color: #495057;"><a href='/ejercicio/{{exercise.idExercise}}'> {{ exercise.exerciseName }}</a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            {% endfor %}        
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -14,7 +14,6 @@ class Exercise(models.Model):
     secMuscles = models.ManyToManyField(Muscle, related_name='secondary', verbose_name='Secondary Muscles')
     video = models.URLField(verbose_name='Video', null=True)
     instructions = models.TextField(verbose_name='Instructions', null=True)
-    tags = models.TextField(verbose_name='Tags', null=True)
 
     def __str__(self):
         return self.exerciseName

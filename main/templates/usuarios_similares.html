@@ -1,0 +1,31 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Pel&iacute;culas similares {% endblock %}	    
+
+{% block contenido %} 
+
+    	<form id="formulario" method="post" action=''>{% csrf_token %}
+    		<fieldset>
+    			<legend>B&uacute;squeda de mejores usuarios dada la Pel&iacute;cula</legend>
+    			{{formulario}}
+    			<BR><BR>
+
+    			<input type='submit' value='Realizar B&uacute;squeda'/>
+    		</fieldset>
+    	</form>
+	    
+	    <hr>
+
+	    {% if items %}
+		    <h4> Usuarios m&aacute;s parecids a la película {{pelicula.titulo}}:</h4>
+		    <dl class="uk-description-list-line">
+
+			{% for usuario, similaridad in items %}
+			    <dd>Usuario: {{usuario.idUsuario}}  Similaridad:{{similaridad | floatformat:"2"}}</dd>    
+			{% endfor %}
+
+			</dl>
+
+		{% endif %}
+
+{% endblock %}

@@ -1,0 +1,89 @@
+<div class="row">
+    {% for ejercicio in items %}
+    <div class="card mb-4 shadow-sm" style="justify-items: center;">
+        <div class="card-body" style="
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background-color: #e7e7e7;
+            padding: 10px;
+            width: 90%;
+            flex-direction: column;
+            padding-inline: 30px;
+            border: 1px solid;
+            border-radius: 10px;
+        ">
+            <div class="card-text" style="justify-items: center; padding-top: 10px;">
+                <h4 class="card-title"><a style="color:black" href='/ejercicio/{{ejercicio.idExercise}}'>{{ ejercicio.exerciseName }}</a></h4>
+                <hr style="
+                    width: 50vh;
+                    border-top: 1px solid black;
+                ">
+            </div>
+            <div class="info" style="
+                display: flex;
+                justify-content: space-between;
+            ">
+                <div style="
+                    align-self: center;
+                ">
+                    <strong>Categoría:</strong> {{ ejercicio.exerciseCategory }}<br>
+                </div>
+                <p class="card-info">
+                    <strong>Músculos principales:</strong> {{ ejercicio.priMuscles|default:"N/A" }}<br>
+                    {% if ejercicio.secMuscles %}
+                        <strong>Músculos secundarios:</strong> {{ ejercicio.secMuscles|default:"N/A" }}
+                    {% endif %}
+                </p>
+                <div style="
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                ">
+                    {% if ejercicio.video %}
+                        <a href="{{ ejercicio.video }}" class="btn btn-sm btn-info" target="_blank">Ver video</a>
+                    {% endif %}
+                    <a class="instrucciones-a" href="#">Ver instrucciones</a>
+
+                    <div class="instrucciones-overlay overlay" style="display: none;">
+                        <div class="loading-div instrucciones-div" style="
+                        display: none;
+                        background-color: white;
+                        padding-inline: 20px;
+                        padding-top: 20px;
+                        border: 1px solid;
+                        border-radius: 8px;
+                        font-size: 18px;
+                        box-shadow: 0 0 9px 4px #b3b3b3;">
+                            <p class="instrucciones-text">{{ ejercicio.instructions }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const instruccionesLinks = document.querySelectorAll('.instrucciones-a');
+    const overlays = document.querySelectorAll('.instrucciones-overlay');
+    const instruccionesDivs = document.querySelectorAll('.instrucciones-div');
+
+    instruccionesLinks.forEach((instrucciones, index) => {
+        instrucciones.addEventListener('click', function(event) {
+            event.preventDefault();
+            overlays[index].style.display = 'block';
+            instruccionesDivs[index].style.display = 'block';
+        });
+
+        overlays[index].addEventListener('click', function(event) {
+            event.preventDefault();
+            overlays[index].style.display = 'none';
+            instruccionesDivs[index].style.display = 'none';
+        });
+    });
+});
+</script>

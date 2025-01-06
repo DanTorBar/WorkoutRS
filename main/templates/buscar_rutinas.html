@@ -1,0 +1,26 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Búsqueda de Rutinas {% endblock %}
+
+{% block contenido %} 
+
+<form id="formulario" method="post" action=''>{% csrf_token %}
+    <fieldset style="display: flex; justify-content: space-between;">
+        <legend>Búsqueda de rutinas</legend>
+        {{ formulario.as_p }}
+        <br><br>
+        <input type='submit' class="btn btn-primary" value='Realizar Búsqueda'/>
+    </fieldset>
+</form>
+
+<hr>
+
+{% if items %}
+    {% include 'lista_rutinas.html' %}
+{% elif esPost %}
+    <p class="text-muted">No se encontraron rutinas que coincidan con los filtros seleccionados.</p>
+{% endif %}
+
+{% endblock %}
+
+
