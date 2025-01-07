@@ -41,6 +41,24 @@
           </li>
         </ul>
       </div>
+      <div class="uk-navbar-right">
+        {% if user.is_authenticated %}
+          <ul class="uk-navbar-nav">
+            <li class="uk-active"><a href="/perfil">{{ user.username }}</a></li>
+            <li class="uk-active">
+              <a href="#" onclick="document.getElementById('logout-form').submit();">Cerrar Sesión</a>
+              <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
+                  {% csrf_token %}
+              </form>
+            </li>
+          </ul>
+        {% else %}
+          <ul class="uk-navbar-nav">
+              <li class="uk-active"><a href="/register">Registrarse</a></li>
+              <li class="uk-active"><a href="/login">Iniciar sesión</a></li>
+          </ul>
+        {% endif %}
+      </div>
     </nav>
     
     <hr>
