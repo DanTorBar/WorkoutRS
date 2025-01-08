@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 from django.urls import reverse
 from main.forms import CustomUserCreationForm, EditUserForm, ExerciseTermSearchForm, ExerciseSearchForm, WorkoutTermSearchForm, WorkoutSearchForm
-from main.models import Exercise, Workout
+from main.models import Exercise, Favourite, Workout
 from main.search.search import almacenar_datos, ej_buscar, ej_buscar_nombre_instrucciones, ru_buscar, ru_buscar_nombre_descripcion
 from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
@@ -88,7 +88,7 @@ def search_ex(request):
             if muscle == "N/A":
                 muscle = ""
 
-            items = ej_buscar(name=name, cat=exerciseCategory, muscle=muscle)
+            items = ej_buscar(name=name, cat=exerciseCategory, muscle=muscle, user=request.user)
 
     datos = {
         'name': name,
@@ -110,7 +110,7 @@ def search_ex_name_instructions(request):
         
         if formulario.is_valid():
             termino = formulario.cleaned_data['term']
-            items = ej_buscar_nombre_instrucciones(termino)
+            items = ej_buscar_nombre_instrucciones(termino, user=request.user)
             for item in items:
                 item['exerciseCategory'] = item.get('exerciseCategory', 'N/A').replace(',', ', ')
                 priMuscles = item.get('priMuscles', [])
@@ -166,7 +166,7 @@ def search_wt(request):
             if gender == "N/A":
                 gender = ""
 
-            items = ru_buscar(name=name, cat=workoutCategory, level=level, gender=gender)
+            items = ru_buscar(name=name, cat=workoutCategory, level=level, gender=gender, user=request.user)
             
             for i in items:
                 i['link'] = i.get('workoutName', 'N/A').replace(' ', '_').lower()
@@ -180,7 +180,6 @@ def search_wt(request):
     }
     
     return render(request, 'buscar_rutinas.html', {'formulario':formulario, 'items': items, 'datos': datos, 'esPost':esPost, 'STATIC_URL':settings.STATIC_URL})
-
     
 
 def search_wt_name_description(request):
@@ -193,7 +192,7 @@ def search_wt_name_description(request):
         
         if formulario.is_valid():
             termino = formulario.cleaned_data['term']
-            items = ru_buscar_nombre_descripcion(termino)
+            items = ru_buscar_nombre_descripcion(termino, user=request.user)
             for i in items:
                 i['link'] = i.get('workoutName', 'N/A').replace(' ', '_').lower()
 
@@ -221,3 +220,34 @@ def workout_detail(request, link):
     }
     
     return render(request, 'rutina.html', context)
+
+
+# Favoritos
+
+@login_required
+def add_favourite(request, type, id):
+    if request.method == 'POST':
+        if type == 'w':
+            item = get_object_or_404(Workout, id=id)
+            Favourite.objects.get_or_create(user=request.user, workout=item)
+        elif type == 'e':
+            item = get_object_or_404(Exercise, idExercise=id)
+            Favourite.objects.get_or_create(user=request.user, exercise=item)
+        return JsonResponse({'status': 'added'})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def delete_favourite(request, type, id):
+    if request.method == 'POST':
+        if type == 'w':
+            Favourite.objects.filter(user=request.user, workout_id=id).delete()
+        elif type == 'e':
+            Favourite.objects.filter(user=request.user, exercise_id=id).delete()
+        return JsonResponse({'status': 'deleted'})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def list_favourites(request):
+    favourites = Favourite.objects.filter(user=request.user)            
+        
+    return render(request, 'favoritos.html', {'favourites': favourites})

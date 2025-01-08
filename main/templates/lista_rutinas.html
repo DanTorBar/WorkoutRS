@@ -1,0 +1,85 @@
+<div class="row">
+    {% for rutina in items %}
+    <div class="card mb-4 shadow-sm" style="justify-items: center;">
+        <div class="card-body" style="
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background-color: #e7e7e7;
+            padding: 10px;
+            width: 90%;
+            flex-direction: column;
+            padding-inline: 30px;
+            border: 1px solid;
+            border-radius: 10px;
+        ">
+
+            <div class="card-text" style="justify-items: center; padding-top: 10px;">
+                <h4 class="card-title"><a style="color:black" href='/rutina/{{rutina.link}}'>{{ rutina.workoutName }}</a></h4>
+                <hr style="
+                    width: 50vh;
+                    border-top: 1px solid black;
+                ">
+            </div>
+            <div class="info" style="
+                display: flex;
+                justify-content: space-between;
+            ">
+                <div style="
+                    align-self: center;
+                    max-width: 25vh;
+                ">
+                    <strong>Categoría:</strong> {{ rutina.workoutCategory }}<br>
+                </div>
+                <p class="card-info">
+                    <strong>Nivel:</strong> 
+                    {% if rutina.level %}
+                        {{ rutina.level|default:"N/A" }}<br>
+                    {% endif %}
+
+
+                </p>
+                <p class="card-info">
+                    <strong>Género:</strong> 
+                    {% if rutina.gender %}
+                        {{ rutina.gender|default:"N/A" }}
+                    {% endif %}
+
+                </p>
+                <button 
+                    class="favourite-btn {% if rutina.is_favourite %}favourite{% endif %}" 
+                    style="position: absolute; right: 2%; top: 12%;"
+                    data-type="w" 
+                    data-id="{{ rutina.idWorkout }}">
+                    ❤
+                </button>
+
+            </div>        
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const instruccionesLinks = document.querySelectorAll('.instrucciones-a');
+    const overlays = document.querySelectorAll('.instrucciones-overlay');
+    const instruccionesDivs = document.querySelectorAll('.instrucciones-div');
+
+    instruccionesLinks.forEach((instrucciones, index) => {
+        instrucciones.addEventListener('click', function(event) {
+            event.preventDefault();
+            overlays[index].style.display = 'block';
+            instruccionesDivs[index].style.display = 'block';
+        });
+
+        overlays[index].addEventListener('click', function(event) {
+            event.preventDefault();
+            overlays[index].style.display = 'none';
+            instruccionesDivs[index].style.display = 'none';
+        });
+    });
+});
+</script>

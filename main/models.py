@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Muscle(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -43,3 +44,20 @@ class Workout(models.Model):
 
     class Meta:
         ordering = ['workoutName']
+
+
+class Favourite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favourite')
+    workout = models.ForeignKey('Workout', on_delete=models.CASCADE, null=True, blank=True)
+    exercise = models.ForeignKey('Exercise', on_delete=models.CASCADE, null=True, blank=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.workout:
+            return f"Favorito: {self.user.username} - Rutina: {self.workout.workoutName}"
+        elif self.exercise:
+            return f"Favorito: {self.user.username} - Ejercicio: {self.exercise.exerciseName}"
+        return "Favorito sin asociación"
+
+    class Meta:
+        unique_together = ('user', 'workout', 'exercise')
