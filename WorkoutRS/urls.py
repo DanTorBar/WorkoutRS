@@ -18,6 +18,10 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page="/inicio"), name='logout'),
     path('editar/', views.edit_user, name='editar_usuario'),
-    path('perfil/', views.user_profile, name='perfil')
+    path('perfil/', views.user_profile, name='perfil'),
+    path('favoritos/', views.list_favourites, name='lista_favoritos'),
+    path('favoritos/agregar/<str:type>/<int:id>/', views.add_favourite, name='agregar_favorito'),
+    path('favoritos/eliminar/<str:type>/<int:id>/', views.delete_favourite, name='eliminar_favorito'),
+
 
 ]

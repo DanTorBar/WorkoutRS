@@ -15,13 +15,14 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'WorkoutRS.settings')
 import django
 django.setup()
 
-from main.models import Exercise, Workout
+from main.models import Exercise, Favourite, Workout
 from main.scrapping.scrapping import extraer_rutinas_y_ejercicios
 
  
 def almacenar_datos():
 
     esquema_rutina = Schema(
+        idWorkout=ID(stored=True, unique=True),
         workoutName=TEXT(stored=True, phrase=True),
         workoutCategory=TEXT(analyzer=KeywordAnalyzer(), stored=True),
         level=KEYWORD(stored=True, commas=True, lowercase=True),
@@ -89,6 +90,7 @@ def almacenar_datos():
     # Añadir rutinas al índice
     for rutina in lista_rutinas:
         writer_rutina.add_document(
+            idWorkout=str(rutina.id),
             workoutName=str(rutina.workoutName),
             workoutCategory=str(rutina.workoutCategory),
             level=str(rutina.level),
@@ -104,6 +106,7 @@ def almacenar_datos():
             day7=[str(ejercicio.idExercise) for ejercicio in rutina.day7.all()]
         )
         print(f"Se ha añadido la rutina {rutina.workoutName} al índice")
+
     # Commit writers
     writer_ejercicio.commit()
     writer_rutina.commit()
@@ -113,7 +116,7 @@ def almacenar_datos():
     return mensaje
 
 
-def ej_buscar_nombre_instrucciones(cadena):
+def ej_buscar_nombre_instrucciones(cadena, user):
     try:
         ix = open_dir("IndexEjercicio")
     except IndexError:
@@ -123,11 +126,19 @@ def ej_buscar_nombre_instrucciones(cadena):
         query = MultifieldParser(["exerciseName", "instructions"], ix.schema).parse(f'"{cadena}"')
         results = searcher.search(query, limit=100)
         result_list = [dict(result) for result in results]
+        for result in result_list:
+            exercise_id = result.get('idExercise')
+            # Comprobar si el ejercicio está en los favoritos
+            if user.is_authenticated:
+                result['is_favourite'] = Favourite.objects.filter(user=user, exercise_id=exercise_id).exists()
+            else:
+                result['is_favourite'] = False
+
         
     return result_list
 
 
-def ej_buscar(name, cat, muscle):
+def ej_buscar(name, cat, muscle, user):
     try:
         ix = open_dir("IndexEjercicio")
     except Exception as e:
@@ -157,13 +168,21 @@ def ej_buscar(name, cat, muscle):
             query = parser.parse(query_string)
             results = searcher.search(query, limit=100)
             result_list = [dict(result) for result in results]
+            for result in result_list:
+                exercise_id = result.get('idExercise')
+                # Comprobar si el ejercicio está en los favoritos
+                if user.is_authenticated:
+                    result['is_favourite'] = Favourite.objects.filter(user=user, exercise_id=exercise_id).exists()
+                else:
+                    result['is_favourite'] = False
+
             return result_list
         except Exception as e:
             print(f"Error parsing query: {e}")
             return []
 
 
-def ru_buscar(name, cat, level, gender):
+def ru_buscar(name, cat, level, gender, user):
     try:
         ix = open_dir("IndexRutina")
     except Exception as e:
@@ -196,13 +215,23 @@ def ru_buscar(name, cat, level, gender):
             print(f"Constructed query: {query}")
             results = searcher.search(query, limit=100)
             result_list = [dict(result) for result in results]
-            print(f"Search results: {len(result_list)}")
+            print(f"Search results:")
+            
+            # Ahora verificamos si cada rutina está en los favoritos del usuario
+            for result in result_list:
+                workout_id = result.get('idWorkout')
+                # Comprobar si la rutina está en los favoritos
+                if user.is_authenticated:
+                    result['is_favourite'] = Favourite.objects.filter(user=user, workout_id=workout_id).exists()
+                else:
+                    result['is_favourite'] = False
+
             return result_list
         except Exception as e:
             print(f"Error parsing query: {e}")
             return []
     
-def ru_buscar_nombre_descripcion(cadena):
+def ru_buscar_nombre_descripcion(cadena, user):
     try:
         ix = open_dir("IndexRutina")
     except IndexError:
@@ -212,7 +241,15 @@ def ru_buscar_nombre_descripcion(cadena):
         query = MultifieldParser(["workoutName", "description"], ix.schema).parse(f'"{cadena}"*')
         results = searcher.search(query, limit=100)
         result_list = [dict(result) for result in results]
-        
+
+        for result in result_list:
+            workout_id = result.get('idWorkout')
+            # Comprobar si la rutina está en los favoritos
+            if user.is_authenticated:
+                result['is_favourite'] = Favourite.objects.filter(user=user, workout_id=workout_id).exists()
+            else:
+                result['is_favourite'] = False
+
     return result_list
 
     

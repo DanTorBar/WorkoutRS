@@ -52,3 +52,16 @@
     color: red;
     list-style: none;
 }
+
+.favourite-btn {
+    font-size: 24px;
+    color: grey;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.favourite-btn.favourite {
+    color: red;
+}
