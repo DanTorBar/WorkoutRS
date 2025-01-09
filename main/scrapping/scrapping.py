@@ -26,7 +26,7 @@ def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, 
     secondary_muscles = [Muscle.objects.get_or_create(name=muscle)[0] for muscle in secMuscles.split(',')]
 
     exercise, created = Exercise.objects.get_or_create(
-        idExercise=id_,
+        id=id_,
         defaults={
             "exerciseName": exerciseName,
             "exerciseCategory": exerciseCategory,
@@ -58,7 +58,7 @@ def store_workout(workoutName, workoutCategory, level, gender, bodyPart, descrip
 
     for day, exercises in enumerate(days, start=1):
         for exercise_id in exercises:
-            exercise = Exercise.objects.get(idExercise=exercise_id)
+            exercise = Exercise.objects.get(id=exercise_id)
             getattr(workout, f'day{day}').add(exercise)
 
     workout.save()

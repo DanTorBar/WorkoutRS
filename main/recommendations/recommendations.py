@@ -2,7 +2,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-def calcular_similitud(items, id_item, campos):
+def calcular_similitud(items, id_item, campos, top_n=5):
     """
     Calcula la similitud entre un ítem específico y el resto de los ítems.
 
@@ -37,5 +37,6 @@ def calcular_similitud(items, id_item, campos):
     # Excluir el ítem base y devolver los más similares
     recomendaciones = [
         items[i] for i, sim in similares if i != idx_base
-    ]
+    ][:top_n]
+    
     return recomendaciones

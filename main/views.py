@@ -130,7 +130,7 @@ def search_ex_name_instructions(request):
 
 def exercise_detail(request, id):
     # Obtener el ejercicio correspondiente al id
-    ejercicio = get_object_or_404(Exercise, idExercise=id)
+    ejercicio = get_object_or_404(Exercise, id=id)
     
     context = {
         'ejercicio': ejercicio,
@@ -225,7 +225,7 @@ def add_favourite(request, type, id):
             item = get_object_or_404(Workout, id=id)
             Favourite.objects.get_or_create(user=request.user, workout=item)
         elif type == 'e':
-            item = get_object_or_404(Exercise, idExercise=id)
+            item = get_object_or_404(Exercise, id=id)
             Favourite.objects.get_or_create(user=request.user, exercise=item)
         return JsonResponse({'status': 'added'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -257,7 +257,7 @@ def recommend_workouts(request, id):
     ))
 
     # Obtener las recomendaciones
-    recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"])
+    recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"], 5)
 
     return render(request, 'recomendaciones_rutinas.html', {
         'recomendaciones': recomendaciones,
@@ -265,17 +265,17 @@ def recommend_workouts(request, id):
     })
 
 
-# @login_required
-# def recommend_exercises(request, id):
-#     # Obtener todos los ejercicios
-#     ejercicios = list(Exercise.objects.all().values(
-#         "idExercise", "exerciseName", "exerciseCategory", "priMuscles", "secMuscles"
-#     ))
+@login_required
+def recommend_exercises(request, id):
+    # Obtener todos los ejercicios
+    ejercicios = list(Exercise.objects.all().values(
+        "id", "exerciseName", "exerciseCategory", "priMuscles", "secMuscles"
+    ))
 
-#     # Obtener las recomendaciones
-#     recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategorys", "priMuscles", "secMuscles"])
+    # Obtener las recomendaciones
+    recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
 
-#     return render(request, 'recomendaciones_ejercicios.html', {
-#         'recomendaciones': recomendaciones,
-#         'STATIC_URL': settings.STATIC_URL
-#     })
+    return render(request, 'recomendaciones_ejercicios.html', {
+        'recomendaciones': recomendaciones,
+        'STATIC_URL': settings.STATIC_URL
+    })

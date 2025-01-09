@@ -2,7 +2,7 @@
 <ul>
     {% for ejercicio in recomendaciones %}
         <li>
-            <a href="{% url 'detalles_ejercicio' ejercicio.idExercise %}">
+            <a href="{% url 'detalles_ejercicio' ejercicio.id %}">
                 {{ ejercicio.exerciseName }}
             </a>
             <p>Categoría: {{ ejercicio.exerciseCategory }}</p>

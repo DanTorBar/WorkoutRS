@@ -8,7 +8,6 @@ class Muscle(models.Model):
         return self.name
 
 class Exercise(models.Model):
-    idExercise = models.IntegerField(primary_key=True)
     exerciseName = models.TextField(verbose_name='Exercise name')
     exerciseCategory = models.CharField(max_length=200, verbose_name='Exercise Category', null=True)
     priMuscles = models.ManyToManyField(Muscle, related_name='primary', verbose_name='Primary Muscles')

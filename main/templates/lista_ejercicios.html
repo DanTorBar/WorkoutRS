@@ -2,6 +2,7 @@
     {% for ejercicio in items %}
     <div class="card mb-4 shadow-sm" style="justify-items: center;">
         <div class="card-body" style="
+            position: relative;
             display: flex;
             justify-content: space-between;
             margin-bottom: 30px;
@@ -61,11 +62,11 @@
                 </div>
                 <button 
                     class="favourite-btn {% if ejercicio.is_favourite %}favourite{% endif %}" 
+                    style="position: absolute; right: 2%; top: 12%;"
                     data-type="e" 
                     data-id="{{ ejercicio.idExercise }}">
-                    ♥
+                    ❤
                 </button>
-    
             </div>
         </div>
     </div>
