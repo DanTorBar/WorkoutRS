@@ -66,7 +66,7 @@ def almacenar_datos():
     writer_rutina = ix_rutina.writer()
 
     start_time = time.time()
-    # extraer_rutinas_y_ejercicios()
+    extraer_rutinas_y_ejercicios()
     end_time = time.time()
 
     print(f"Tiempo de extracción: {end_time - start_time} segundos")
@@ -77,7 +77,7 @@ def almacenar_datos():
     # Añadir ejercicios al índice
     for ejercicio in lista_ejercicios:
         writer_ejercicio.add_document(
-            idExercise=str(ejercicio.idExercise),  # Acceder al id del ejercicio
+            idExercise=str(ejercicio.id),  # Acceder al id del ejercicio
             exerciseName=str(ejercicio.exerciseName),
             exerciseCategory=str(ejercicio.exerciseCategory),
             priMuscles=",".join([str(musculo.name) for musculo in ejercicio.priMuscles.all()]),
@@ -97,13 +97,13 @@ def almacenar_datos():
             gender=str(rutina.gender),
             bodyPart=str(rutina.bodyPart),
             description=str(rutina.description) if rutina.description else '',  # Verificar si hay descripción
-            day1=[str(ejercicio.idExercise) for ejercicio in rutina.day1.all()],
-            day2=[str(ejercicio.idExercise) for ejercicio in rutina.day2.all()],
-            day3=[str(ejercicio.idExercise) for ejercicio in rutina.day3.all()],
-            day4=[str(ejercicio.idExercise) for ejercicio in rutina.day4.all()],
-            day5=[str(ejercicio.idExercise) for ejercicio in rutina.day5.all()],
-            day6=[str(ejercicio.idExercise) for ejercicio in rutina.day6.all()],
-            day7=[str(ejercicio.idExercise) for ejercicio in rutina.day7.all()]
+            day1=[str(ejercicio.id) for ejercicio in rutina.day1.all()],
+            day2=[str(ejercicio.id) for ejercicio in rutina.day2.all()],
+            day3=[str(ejercicio.id) for ejercicio in rutina.day3.all()],
+            day4=[str(ejercicio.id) for ejercicio in rutina.day4.all()],
+            day5=[str(ejercicio.id) for ejercicio in rutina.day5.all()],
+            day6=[str(ejercicio.id) for ejercicio in rutina.day6.all()],
+            day7=[str(ejercicio.id) for ejercicio in rutina.day7.all()]
         )
         print(f"Se ha añadido la rutina {rutina.workoutName} al índice")
 

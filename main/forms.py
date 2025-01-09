@@ -26,65 +26,73 @@ class ExerciseTermSearchForm(forms.Form):
 
  
 class ExerciseSearchForm(forms.Form):
-    categories = Exercise.objects.values_list('exerciseCategory', flat=True).distinct()
-
-    unique_categories = list(set(chain.from_iterable(cat.split(',') for cat in categories if cat)))
-    
-    unique_categories.insert(0, "Seleccionar")
-        
-    primary_muscles = Muscle.objects.filter(primary__isnull=False).distinct()
-
-    secondary_muscles = Muscle.objects.filter(secondary__isnull=False).distinct()
-
-    muscles = list((primary_muscles | secondary_muscles).distinct())
-
     name = forms.CharField(label="Nombre", widget=forms.TextInput, required=False)
     exerciseCategory = forms.ChoiceField(
-        label="Categoría", 
-        choices=[(cat, cat) for cat in unique_categories if cat], 
+        label="Categoría",
+        choices=[],
         initial="Seleccionar",
         required=False
     )
     muscle = forms.ChoiceField(
-        label="Músculo", 
-        choices=[(muscle.name, muscle.name) for muscle in muscles],
+        label="Músculo",
+        choices=[],
         initial="N/A",
         required=False
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Consultas a la base de datos para obtener categorías y músculos
+        categories = Exercise.objects.values_list('exerciseCategory', flat=True).distinct()
+        unique_categories = list(set(chain.from_iterable(cat.split(',') for cat in categories if cat)))
+        unique_categories.insert(0, "Seleccionar")
+
+        primary_muscles = Muscle.objects.filter(primary__isnull=False).distinct()
+        secondary_muscles = Muscle.objects.filter(secondary__isnull=False).distinct()
+        muscles = list((primary_muscles | secondary_muscles).distinct())
+
+        # Actualizar los choices de los campos
+        self.fields['exerciseCategory'].choices = [(cat, cat) for cat in unique_categories if cat]
+        self.fields['muscle'].choices = [(muscle.name, muscle.name) for muscle in muscles]
 
 class WorkoutTermSearchForm(forms.Form):
     term = forms.CharField(label="Término", widget=forms.TextInput, required=False)
 
  
 class WorkoutSearchForm(forms.Form):
-    categories = Workout.objects.values_list('workoutCategory', flat=True).distinct()
-
-    unique_categories = list(set(chain.from_iterable(cat.split(',') for cat in categories if cat)))
-    
-    unique_categories.insert(0, "Seleccionar")
-        
-    levels = set(Workout.objects.values_list('level', flat=True).distinct())
-
-    genders = set(Workout.objects.values_list('gender', flat=True).distinct())
-
     name = forms.CharField(label="Nombre", widget=forms.TextInput, required=False)
-    
     workoutCategory = forms.ChoiceField(
-        label="Categoría", 
-        choices=[(cat, cat) for cat in unique_categories if cat], 
+        label="Categoría",
+        choices=[],
         initial="Seleccionar",
         required=False
     )
     level = forms.ChoiceField(
-        label="Nivel", 
-        choices=[(level, level) for level in levels],
+        label="Nivel",
+        choices=[],
         initial="N/A",
         required=False
     )
     gender = forms.ChoiceField(
-        label="Género", 
-        choices=[(gender, gender) for gender in genders],
+        label="Género",
+        choices=[],
         initial="N/A",
         required=False
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Consultas a la base de datos para obtener categorías, niveles y géneros
+        categories = Workout.objects.values_list('workoutCategory', flat=True).distinct()
+        unique_categories = list(set(chain.from_iterable(cat.split(',') for cat in categories if cat)))
+        unique_categories.insert(0, "Seleccionar")
+
+        levels = set(Workout.objects.values_list('level', flat=True).distinct())
+        genders = set(Workout.objects.values_list('gender', flat=True).distinct())
+
+        # Actualizar los choices de los campos
+        self.fields['workoutCategory'].choices = [(cat, cat) for cat in unique_categories if cat]
+        self.fields['level'].choices = [(level, level) for level in levels if level]
+        self.fields['gender'].choices = [(gender, gender) for gender in genders if gender]

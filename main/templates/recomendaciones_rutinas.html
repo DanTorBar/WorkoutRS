@@ -1,0 +1,12 @@
+<h1>Recomendaciones de Rutinas</h1>
+<ul>
+    {% for rutina in recomendaciones %}
+        <li>
+            <a href="/rutina/{{rutina.id}}">
+                {{ rutina.workoutName }}
+            </a>
+            <p>Categoría: {{ rutina.workoutCategory }}</p>
+            <p>Nivel: {{ rutina.level }}</p>
+        </li>
+    {% endfor %}
+</ul>

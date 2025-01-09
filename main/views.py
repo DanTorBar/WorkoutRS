@@ -8,7 +8,7 @@ from main.search.search import almacenar_datos, ej_buscar, ej_buscar_nombre_inst
 from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-
+from main.recommendations.recommendations import calcular_similitud
 
 
 def index(request):
@@ -130,7 +130,7 @@ def search_ex_name_instructions(request):
 
 def exercise_detail(request, id):
     # Obtener el ejercicio correspondiente al id
-    ejercicio = get_object_or_404(Exercise, idExercise=id)
+    ejercicio = get_object_or_404(Exercise, id=id)
     
     context = {
         'ejercicio': ejercicio,
@@ -166,11 +166,7 @@ def search_wt(request):
             if gender == "N/A":
                 gender = ""
 
-            items = ru_buscar(name=name, cat=workoutCategory, level=level, gender=gender, user=request.user)
-            
-            for i in items:
-                i['link'] = i.get('workoutName', 'N/A').replace(' ', '_').lower()
-    
+            items = ru_buscar(name=name, cat=workoutCategory, level=level, gender=gender, user=request.user)    
             
     datos = {
         'name': name,
@@ -193,14 +189,12 @@ def search_wt_name_description(request):
         if formulario.is_valid():
             termino = formulario.cleaned_data['term']
             items = ru_buscar_nombre_descripcion(termino, user=request.user)
-            for i in items:
-                i['link'] = i.get('workoutName', 'N/A').replace(' ', '_').lower()
 
     
     return render(request, 'buscar_rutinas_nombre_descripcion.html', {'formulario':formulario, 'items': items, 'termino': termino, 'STATIC_URL':settings.STATIC_URL})
 
-def workout_detail(request, link):
-    rutina = get_object_or_404(Workout, workoutName=link.replace('_', ' ').upper())
+def workout_detail(request, id):
+    rutina = get_object_or_404(Workout, id=id)
     
     # Preparar los datos de los días de la rutina
     days = [
@@ -231,7 +225,7 @@ def add_favourite(request, type, id):
             item = get_object_or_404(Workout, id=id)
             Favourite.objects.get_or_create(user=request.user, workout=item)
         elif type == 'e':
-            item = get_object_or_404(Exercise, idExercise=id)
+            item = get_object_or_404(Exercise, id=id)
             Favourite.objects.get_or_create(user=request.user, exercise=item)
         return JsonResponse({'status': 'added'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -251,3 +245,37 @@ def list_favourites(request):
     favourites = Favourite.objects.filter(user=request.user)            
         
     return render(request, 'favoritos.html', {'favourites': favourites})
+
+
+# Recomendaciones
+
+@login_required
+def recommend_workouts(request, id):
+    # Obtener todas las rutinas
+    rutinas = list(Workout.objects.all().values(
+        "id", "workoutName", "workoutCategory", "level", "gender", "bodyPart", "description"
+    ))
+
+    # Obtener las recomendaciones
+    recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"], 5)
+
+    return render(request, 'recomendaciones_rutinas.html', {
+        'recomendaciones': recomendaciones,
+        'STATIC_URL': settings.STATIC_URL
+    })
+
+
+@login_required
+def recommend_exercises(request, id):
+    # Obtener todos los ejercicios
+    ejercicios = list(Exercise.objects.all().values(
+        "id", "exerciseName", "exerciseCategory", "priMuscles", "secMuscles"
+    ))
+
+    # Obtener las recomendaciones
+    recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
+
+    return render(request, 'recomendaciones_ejercicios.html', {
+        'recomendaciones': recomendaciones,
+        'STATIC_URL': settings.STATIC_URL
+    })
