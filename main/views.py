@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 from django.urls import reverse
 from main.forms import CustomUserCreationForm, EditUserForm, ExerciseTermSearchForm, ExerciseSearchForm, WorkoutTermSearchForm, WorkoutSearchForm
-from main.models import Exercise, Favourite, Workout
+from main.models import Exercise, Favourite, Muscle, Workout
 from main.search.search import almacenar_datos, ej_buscar, ej_buscar_nombre_instrucciones, ru_buscar, ru_buscar_nombre_descripcion
 from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
@@ -70,7 +70,7 @@ def edit_user(request):
 
 def search_ex(request):
     formulario = ExerciseSearchForm()
-    items = None
+    ejercicios = None
     name = ""
     exerciseCategory = "Seleccionar"
     muscle = "N/A"
@@ -88,7 +88,7 @@ def search_ex(request):
             if muscle == "N/A":
                 muscle = ""
 
-            items = ej_buscar(name=name, cat=exerciseCategory, muscle=muscle, user=request.user)
+            ejercicios = ej_buscar(name=name, cat=exerciseCategory, muscle=muscle, user=request.user)
 
     datos = {
         'name': name,
@@ -96,13 +96,13 @@ def search_ex(request):
         'muscle': muscle,
     }
     
-    return render(request, 'buscar_ejercicios.html', {'formulario':formulario, 'items': items, 'datos': datos, 'esPost': esPost,'STATIC_URL':settings.STATIC_URL})
+    return render(request, 'buscar_ejercicios.html', {'formulario':formulario, 'ejercicios': ejercicios, 'datos': datos, 'esPost': esPost,'STATIC_URL':settings.STATIC_URL})
 
     
 
 def search_ex_name_instructions(request):
     formulario = ExerciseTermSearchForm()
-    items = None
+    ejercicios = None
     termino = None
     
     if request.method == 'POST':
@@ -110,8 +110,8 @@ def search_ex_name_instructions(request):
         
         if formulario.is_valid():
             termino = formulario.cleaned_data['term']
-            items = ej_buscar_nombre_instrucciones(termino, user=request.user)
-            for item in items:
+            ejercicios = ej_buscar_nombre_instrucciones(termino, user=request.user)
+            for item in ejercicios:
                 item['exerciseCategory'] = item.get('exerciseCategory', 'N/A').replace(',', ', ')
                 priMuscles = item.get('priMuscles', [])
                 secMuscles = item.get('secMuscles', [])
@@ -126,14 +126,25 @@ def search_ex_name_instructions(request):
                     else:
                         item['secMuscles'] = secMusclesParsed
     
-    return render(request, 'buscar_ejercicios_nombre_instrucciones.html', {'formulario':formulario, 'items': items, 'termino': termino, 'STATIC_URL':settings.STATIC_URL})
+    return render(request, 'buscar_ejercicios_nombre_instrucciones.html', {'formulario':formulario, 'ejercicios': ejercicios, 'termino': termino, 'STATIC_URL':settings.STATIC_URL})
 
 def exercise_detail(request, id):
     # Obtener el ejercicio correspondiente al id
     ejercicio = get_object_or_404(Exercise, id=id)
     
+    ejerciciosRec = []
+    
+    if ejercicio:
+        ejerciciosRec = recommend_exercises(id)
+        for ej in ejerciciosRec:
+            ej['priMuscles'] = Muscle.objects.get(id=int(ej.get('priMuscles')))
+            ej['secMuscles'] = Muscle.objects.get(id=int(ej.get('secMuscles')))
+            ej['idExercise'] = ej.get('id')
+
+    
     context = {
         'ejercicio': ejercicio,
+        'ejercicios': ejerciciosRec,
         'STATIC_URL': settings.STATIC_URL,
     }
     
@@ -142,7 +153,7 @@ def exercise_detail(request, id):
 
 def search_wt(request):
     formulario = WorkoutSearchForm()
-    items = None
+    rutinas = None
     esPost = False
     name = ""
     workoutCategory = "Seleccionar"
@@ -166,7 +177,7 @@ def search_wt(request):
             if gender == "N/A":
                 gender = ""
 
-            items = ru_buscar(name=name, cat=workoutCategory, level=level, gender=gender, user=request.user)    
+            rutinas = ru_buscar(name=name, cat=workoutCategory, level=level, gender=gender, user=request.user)
             
     datos = {
         'name': name,
@@ -175,12 +186,12 @@ def search_wt(request):
         'gender': gender
     }
     
-    return render(request, 'buscar_rutinas.html', {'formulario':formulario, 'items': items, 'datos': datos, 'esPost':esPost, 'STATIC_URL':settings.STATIC_URL})
+    return render(request, 'buscar_rutinas.html', {'formulario':formulario, 'rutinas': rutinas, 'datos': datos, 'esPost':esPost, 'STATIC_URL':settings.STATIC_URL})
     
 
 def search_wt_name_description(request):
     formulario = WorkoutTermSearchForm()
-    items = None
+    rutinas = None
     termino = None
     
     if request.method == 'POST':
@@ -188,10 +199,10 @@ def search_wt_name_description(request):
         
         if formulario.is_valid():
             termino = formulario.cleaned_data['term']
-            items = ru_buscar_nombre_descripcion(termino, user=request.user)
+            rutinas = ru_buscar_nombre_descripcion(termino, user=request.user)
 
     
-    return render(request, 'buscar_rutinas_nombre_descripcion.html', {'formulario':formulario, 'items': items, 'termino': termino, 'STATIC_URL':settings.STATIC_URL})
+    return render(request, 'buscar_rutinas_nombre_descripcion.html', {'formulario':formulario, 'rutinas': rutinas, 'termino': termino, 'STATIC_URL':settings.STATIC_URL})
 
 def workout_detail(request, id):
     rutina = get_object_or_404(Workout, id=id)
@@ -206,9 +217,17 @@ def workout_detail(request, id):
         rutina.day6.all(),
         rutina.day7.all(),
     ]
+    rutinasRec = []
+    
+    if rutina:
+        rutinasRec = recommend_workouts(id)
+        for rutina in rutinasRec:
+            rutina['idWorkout'] = rutina.get('id')
+
         
     context = {
         'rutina': rutina,
+        'rutinas': rutinasRec,
         'days': days,
         'STATIC_URL': settings.STATIC_URL,
     }
@@ -242,15 +261,40 @@ def delete_favourite(request, type, id):
 
 @login_required
 def list_favourites(request):
-    favourites = Favourite.objects.filter(user=request.user)            
-        
-    return render(request, 'favoritos.html', {'favourites': favourites})
+    favourites = Favourite.objects.filter(user=request.user)
+
+    # Convertir rutinas y ejercicios en diccionarios limpios
+    rutinas = [
+        {
+            'idWorkout': fav.workout.id,
+            'workoutName': fav.workout.workoutName,
+            'workoutCategory': fav.workout.workoutCategory,
+            'level': fav.workout.level,
+            'gender': fav.workout.gender,
+            'bodyPart': fav.workout.bodyPart,
+            'description': fav.workout.description,
+            'is_favourite': True,
+        }
+        for fav in favourites if fav.workout is not None
+    ]
+
+    ejercicios = [
+        {
+            'idExercise': fav.exercise.id,
+            'exerciseName': fav.exercise.exerciseName,
+            'exerciseCategory': fav.exercise.exerciseCategory,
+            'instructions': fav.exercise.instructions,
+            'is_favourite': True,
+        }
+        for fav in favourites if fav.exercise is not None
+    ]
+
+    return render(request, 'favoritos.html', {'favourites': favourites, 'rutinas': rutinas, 'ejercicios': ejercicios})
 
 
 # Recomendaciones
 
-@login_required
-def recommend_workouts(request, id):
+def recommend_workouts(id):
     # Obtener todas las rutinas
     rutinas = list(Workout.objects.all().values(
         "id", "workoutName", "workoutCategory", "level", "gender", "bodyPart", "description"
@@ -259,14 +303,9 @@ def recommend_workouts(request, id):
     # Obtener las recomendaciones
     recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"], 5)
 
-    return render(request, 'recomendaciones_rutinas.html', {
-        'recomendaciones': recomendaciones,
-        'STATIC_URL': settings.STATIC_URL
-    })
+    return recomendaciones
 
-
-@login_required
-def recommend_exercises(request, id):
+def recommend_exercises(id):
     # Obtener todos los ejercicios
     ejercicios = list(Exercise.objects.all().values(
         "id", "exerciseName", "exerciseCategory", "priMuscles", "secMuscles"
@@ -275,7 +314,4 @@ def recommend_exercises(request, id):
     # Obtener las recomendaciones
     recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
 
-    return render(request, 'recomendaciones_ejercicios.html', {
-        'recomendaciones': recomendaciones,
-        'STATIC_URL': settings.STATIC_URL
-    })
+    return recomendaciones

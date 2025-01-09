@@ -5,7 +5,8 @@ from django.contrib.auth import views as auth_views
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),    
+    path('', views.index, name='inicio'),
     path('inicio/', views.index, name='inicio'),
     path('populate/', views.populateDatabase),
     path('buscar_ejercicio_nombre_instrucciones/', views.search_ex_name_instructions),
