@@ -1,3 +1,18 @@
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Oswald", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+body, option, select, input {
+    font-family: 'Exo 2', serif;
+}
+
+h4 {
+    margin-left: 1.25vw;
+}
+
 .loading-div{
     display: none;
     justify-items: center;
@@ -64,4 +79,39 @@
 
 .favourite-btn.favourite {
     color: red;
+}
+
+.uk-navbar-dropdown{
+    background: #3f5d67;
+}
+
+select{
+    border-radius: 5px;
+}
+
+input{
+    border: 1px solid #767676;
+    border-radius: 5px;
+    background-color: #e1e9eb;
+}
+
+.search-button{
+    margin-block: 10px;
+    padding-inline: 12px;
+    background-color: #3f5d67;
+    color: #e1e9eb;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+select{
+    background-color: #e1e9eb;
+}
+
+hr {
+    border-color: lightblue;
+}
+
+.search-button:hover{
+    color: black;
 }

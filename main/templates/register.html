@@ -2,13 +2,15 @@
 
 {% block titulo %} Registro de nuevo usuario {% endblock %}
 
-
 {% block contenido %}
-
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Registrarse</button>
-</form>
-
+<div style="max-width: 400px; margin: 0 auto; background-color: #f7f7f7; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+    <h2 style="text-align: center; margin-bottom: 20px;">Crea tu cuenta</h2>
+    <form method="post" style="display: flex; flex-direction: column; align-items: center;">
+        {% csrf_token %}
+        <div>
+        {{ form.as_p }}
+        </div>
+        <button type="submit" class="search-button" style="width: 110px; height: 40px; margin-top: 15px;">Registrarse</button>
+    </form>
+</div>
 {% endblock %}

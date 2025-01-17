@@ -1,12 +1,12 @@
 <div class="row">
-    {% for ejercicio in items %}
-    <div class="card mb-4 shadow-sm" style="justify-items: center;">
+    {% for ejercicio in ejercicios %}
+    <div class="card mb-4 shadow-sm" style="justify-items: center; padding-bottom: 1px;">
         <div class="card-body" style="
             position: relative;
             display: flex;
             justify-content: space-between;
             margin-bottom: 30px;
-            background-color: #e7e7e7;
+            background-color: #cae8f1;
             padding: 10px;
             width: 90%;
             flex-direction: column;
@@ -48,14 +48,14 @@
 
                     <div class="instrucciones-overlay overlay" style="display: none;">
                         <div class="loading-div instrucciones-div" style="
-                        display: none;
-                        background-color: white;
-                        padding-inline: 20px;
-                        padding-top: 20px;
-                        border: 1px solid;
-                        border-radius: 8px;
-                        font-size: 18px;
-                        box-shadow: 0 0 9px 4px #b3b3b3;">
+                            display: block;
+                            background-color: #cdebf3;
+                            padding-inline: 20px;
+                            padding-top: 20px;
+                            border: 1px solid #000000;
+                            border-radius: 8px;
+                            font-size: 18px;
+                            box-shadow: #265071 0px 0px 6px 0px;">
                             <p class="instrucciones-text">{{ ejercicio.instructions }}</p>
                         </div>
                     </div>

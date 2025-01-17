@@ -1,15 +1,44 @@
 {% extends 'master.html' %}
 
-{% block titulo %} Autor {% endblock %}
+{% block titulo %} Bienvenido a Workout RS {% endblock %}
 
+{% block contenido %}
+<div style="text-align: center; padding: 50px 20px;">
+    <h2 style="margin-bottom: 20px; font-size: 36px;">¡Transforma tu entrenamiento con Workout RS!</h2>
+    <p style="font-size: 18px; margin-bottom: 30px; color: #555;">
+        Explora rutinas, descubre ejercicios personalizados y organiza tus favoritos para alcanzar tus objetivos.
+    </p>
 
+    <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 20px;">
+        <a href="/buscar_rutinas" class="search-button" style="text-decoration: none; font-size: 18px; padding: 15px 30px;">Explorar Rutinas</a>
+        <a href="/buscar_ejercicios" class="search-button" style="text-decoration: none; font-size: 18px; padding: 15px 30px;">Descubrir Ejercicios</a>
+        {% if user.is_authenticated %}
+            <a href="/favoritos" class="search-button" style="text-decoration: none; font-size: 18px; padding: 15px 30px;">Mis Favoritos</a>
+        {% else %}
+            <a href="/register" class="search-button" style="text-decoration: none; font-size: 18px; padding: 15px 30px;">Regístrate Ahora</a>
+        {% endif %}
+    </div>
+</div>
 
-{% block contenido %} 
-     	<h3>Daniel Tortorici</h3>
-
-		<hr>
- 	    <h3>EJERCICIO DE SISTEMAS DE RECOMENDACION COLABORATIVOS </h3>
-	    
-		 <hr>
-
+<div style="margin-top: 50px; background-color: #cae8f1; padding: 30px;">
+    <h3 style="text-align: center; margin-bottom: 20px; font-size: 28px;">¿Por qué elegir Workout RS?</h3>
+    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+        <div style="flex: 1; min-width: 250px; text-align: center; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+            <i class="fas fa-dumbbell" style="font-size: 50px; color: #3f5d67; margin-bottom: 15px;"></i>
+            <h4>Rutinas Personalizadas</h4>
+            <p style="color: #555;">Encuentra rutinas adaptadas a tu nivel y objetivos.</p>
+        </div>
+        <div style="flex: 1; min-width: 250px; text-align: center; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+            <i class="fas fa-heartbeat" style="font-size: 50px; color: #3f5d67; margin-bottom: 15px;"></i>
+            <h4>Seguimiento de Progreso</h4>
+            <p style="color: #555;">Guarda tus favoritos y sigue tu evolución.</p>
+        </div>
+        <div style="flex: 1; min-width: 250px; text-align: center; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+            <i class="fas fa-users" style="font-size: 50px; color: #3f5d67; margin-bottom: 15px;"></i>
+            <h4>Comunidad Activa</h4>
+            <p style="color: #555;">Conecta con otros usuarios y comparte tus logros.</p>
+            <p style="color: red;">En construcción</p>
+        </div>
+    </div>
+</div>
 {% endblock %}

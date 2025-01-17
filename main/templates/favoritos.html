@@ -3,21 +3,23 @@
 {% block titulo %} Mis favoritos {% endblock %}
 
 {% block contenido %} 
+<br>
+<div id="fav-container">
+        
+    {% if favourites %}
+        {% if rutinas %}
+            <h3 style="text-align: center;">Rutinas favoritas</h3>
+            {% include 'lista_rutinas.html' %}
+        {% endif %}
+        {% if ejercicios %}
+            <h3 style="text-align: center;">Ejercicios favoritos</h3>
+            {% include 'lista_ejercicios.html' %}
+        {% endif %}
 
-<ul>
-    {% for favourite in favourites %}
-        <li>
-            {% if favourite.workout %}
-                Rutina: <a style="color:black" href='/rutina/{{favourite.workout.link}}'>{{ favourite.workout.workoutName }}</a>
-                <button class="favourite-btn favourite" style="color: black" data-type="w" data-id="{{ favourite.workout.id }}">Remove</button>
-            {% elif favourite.exercise %}
-                Ejercicio: <a style="color:black" href='/ejercicio/{{favourite.exercise.idExercise}}'>{{ favourite.exercise.exerciseName }}</a>
-                <button class="favourite-btn favourite" style="color: black" data-type="e" data-id="{{ favourite.exercise.idExercise }}">Remove</button>
-            {% endif %}
-        </li>
-    {% empty %}
-        <p>No tienes favoritos guardados.</p>
-    {% endfor %}
-</ul>
+    {% else %}
+        <h4 class="text-muted">No tienes elementos favoritos todavía.</h4>
+    {% endif %}
+
+</div>
 
 {% endblock %}

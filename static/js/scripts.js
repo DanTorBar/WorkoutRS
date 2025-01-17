@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const buttons = document.querySelectorAll('.favourite-btn');
+    const isFavPage = document.getElementById('fav-container')
 
     buttons.forEach(button => {
         button.addEventListener('click', async (e) => {
@@ -17,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    if (btn.style.color=="black"){
-                        btn.closest('li').remove(); // Elimina el elemento de la listac
+                    if (isFavPage){
+                        window.location.reload(); // Elimina el elemento de la listac
                     }
                     else{
                         btn.classList.toggle('favourite');
