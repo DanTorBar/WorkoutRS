@@ -1,0 +1,25 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Registro de nuevo usuario {% endblock %}
+
+
+{% block contenido %}
+    <h1>Perfil de {{ user.username }}</h1>
+    <p><strong>Nombre:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+
+    {% if user.is_authenticated and user.is_superuser %}
+        <p><strong>Rol:</strong> Administrador</p>
+    {% else %}
+        <p><strong>Rol:</strong> Usuario</p>
+    {% endif %}
+
+    {% if user.profile %}
+        <p><strong>Sexo:</strong> {{ user.profile.sexo }}</p>
+        <p><strong>Edad:</strong> {{ user.profile.edad }}</p>
+    {% endif %}
+
+    <a href="{% url 'editar_usuario' %}">Editar Perfil</a>
+
+{% endblock %}
+    

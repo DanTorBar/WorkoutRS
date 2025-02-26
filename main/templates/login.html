@@ -1,0 +1,22 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Iniciar sesión {% endblock %}
+
+{% block contenido %}
+<div style="max-width: 400px; margin: 0 auto; background-color: #f7f7f7; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+    <h2 style="text-align: center; margin-bottom: 20px;">Inicia sesión</h2>
+    <form method="post" style="display: flex; flex-direction: column; align-items: center; width: 100%">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <input type="text" name="username" placeholder="Nombre de usuario" required style="width: 100%; padding-block: 10px; border-radius: 5px; border: 1px solid #ccc;">
+        </div>
+        <div style="margin-bottom: 15px;">
+            <input type="password" name="password" placeholder="Contraseña" required style="width: 100%; padding-block: 10px; border-radius: 5px; border: 1px solid #ccc;">
+        </div>
+        <button type="submit" class="search-button" style="width: 110px; height: 40px; margin-top: 15px;">Iniciar sesión</button>
+    </form>
+    {% if error %}
+        <p style="color: red; text-align: center; margin-top: 10px;">{{ error }}</p>
+    {% endif %}
+</div>
+{% endblock %}

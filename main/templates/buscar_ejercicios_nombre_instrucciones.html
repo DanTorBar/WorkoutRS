@@ -1,0 +1,27 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Búsqueda de Ejercicios (nombre o instrucciones) {% endblock %}
+
+{% block contenido %} 
+
+<form style="justify-items: center; margin-top: 35px;" id="formulario" method="post" action=''>{% csrf_token %}
+    <fieldset style="display: flex; justify-content: space-between; width: 95%; border: 1px solid #3f5d67; color: black;">
+        <legend>Búsqueda de ejercicios que contienen un término en el nombre o instrucciones</legend>
+        {{ formulario.as_p }}
+        <br><br>
+        <button type="submit" class="search-button">BUSCAR</button>
+    </fieldset>
+</form>
+
+<hr>
+
+{% if ejercicios %}
+    <h4 class="mt-4">Ejercicios que contienen el término <span style="font-style: italic">{{ termino }}</span>  en el nombre o en las instrucciones:</h4>
+    {% include 'lista_ejercicios.html' %}
+{% elif termino != None %}
+    <h4 class="text-muted">No se encontraron ejercicios que coincidan con el término <span style="font-style: italic">{{ termino }}</span>.</h4>
+{% endif %}
+
+{% endblock %}
+
+

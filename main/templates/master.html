@@ -1,0 +1,119 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html lang='es'>
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="{% static 'css/uikit.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/master.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Exo+2:wght@500&family=Montserrat&family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+
+
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/uikit.min.js' %}"></script>
+  </head>
+  <body>
+    <div style="background-color: lightblue; min-height: 100vh; box-sizing: border-box;">
+      <h1 style="text-align:center; padding-top:20px">WORKOUT RS</h1>
+      <nav class="uk-navbar-container" uk-navbar style="background-color: #3f5d67">
+        <div class="uk-navbar-left">
+          <ul class="uk-navbar-nav">
+            <li class="uk-active"><a style="color: #e3e3e3" href="#">Inicio</a>
+              <div class="uk-navbar-dropdown">
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                  <li><a style="color: #e3e3e3" href="/inicio">Inicio</a></li>
+                  <li><a style="color: #e3e3e3" id="populate" href="#">Poblar Base de Datos e indexar</a></li>
+                </ul>
+              </div>
+            </li>
+            <li><a style="color: #e3e3e3" href="#">Rutinas</a>
+              <div class="uk-navbar-dropdown">
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                  <li><a style="color: #e3e3e3" href="/buscar_rutinas">Buscar rutinas</a></li>
+                  <li><a style="color: #e3e3e3" href="/buscar_rutina_nombre_descripcion">Buscar rutina por término en nombre o descripción</a></li>
+                </ul>
+              </div>
+            </li>
+            <li><a style="color: #e3e3e3" href="#">Ejercicios</a>
+              <div class="uk-navbar-dropdown">
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                  <li><a style="color: #e3e3e3" href="/buscar_ejercicios">Buscar ejercicios</a></li>
+                  <li><a style="color: #e3e3e3" href="/buscar_ejercicio_nombre_instrucciones">Buscar ejercicio por término en nombre o instrucciones</a></li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="uk-navbar-right">
+          {% if user.is_authenticated %}
+            <ul class="uk-navbar-nav">
+              <li class="uk-active">
+                <a style="color: #e3e3e3" href="#">{{ user.username }}</a>
+                <div class="uk-navbar-dropdown">
+                  <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li><a style="color: #e3e3e3" href="/perfil">Perfil</a></li>
+                    <li><a style="color: #e3e3e3" href="/favoritos">Favoritos</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li>
+                <a style="color: #e3e3e3" href="#" onclick="document.getElementById('logout-form').submit();">Cerrar Sesión</a>
+                <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
+                  {% csrf_token %}
+                </form>
+              </li>
+            </ul>
+          {% else %}
+            <ul class="uk-navbar-nav">
+              <li><a style="color: #e3e3e3" href="/register">Registrarse</a></li>
+              <li><a style="color: #e3e3e3" href="/login">Iniciar sesión</a></li>
+            </ul>
+          {% endif %}
+        </div>
+      </nav>
+      
+      <h1 style="text-align:center;">{% block titulo %} {% endblock %}</h1>
+
+      <div class="loading-div">
+          <span id="loading-text" class="loading-text">Cargando...</span>
+          <span id="loading" class="loading-spinner"></span>
+      </div>
+      <div id="overlay" class="overlay" style="display: none;"></div>
+      {% block contenido %}{% endblock %}
+    </div>
+    <script src="{% static 'js/scripts.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const populate = document.getElementById('populate');
+          const loading = document.querySelector('.loading-div');
+  
+          if (populate) {
+            populate.addEventListener('click', function(event) {
+              event.preventDefault();
+              if (confirm("Estás seguro de que quieres poblar la base de datos e indexar?\nEste proceso puede tardar varios minutos.")) {
+                document.getElementById('overlay').style.display = 'block';
+                loading.style.display = 'grid';
+                fetch('/populate')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        loading.style.display = 'none';
+                        document.getElementById('overlay').style.display = 'none';
+                        alert(data.mensaje);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        loading.style.display = 'none';
+                        document.getElementById('overlay').style.display = 'none';
+                        alert(data.mensaje);
+                    })
+                    ;
+            }
+            });
+          }
+        });
+    </script>
+  </body>
+</html>
