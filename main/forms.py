@@ -23,6 +23,17 @@ class EditUserForm(UserChangeForm):
 
 class ExerciseTermSearchForm(forms.Form):
     term = forms.CharField(label="Término", widget=forms.TextInput, required=False)
+    order = forms.ChoiceField(
+        label="Orden",
+        choices=[],
+        initial="name",
+        required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['order'].choices = [('name', 'Nombre'), ('likes_count', 'Me gusta')]
+
 
  
 class ExerciseSearchForm(forms.Form):
@@ -39,6 +50,13 @@ class ExerciseSearchForm(forms.Form):
         initial="N/A",
         required=False
     )
+    order = forms.ChoiceField(
+        label="Orden",
+        choices=[],
+        initial="likes_count",
+        required=False
+    )
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,9 +73,22 @@ class ExerciseSearchForm(forms.Form):
         # Actualizar los choices de los campos
         self.fields['exerciseCategory'].choices = [(cat, cat) for cat in unique_categories if cat]
         self.fields['muscle'].choices = [(muscle.name, muscle.name) for muscle in muscles]
+        self.fields['order'].choices = [('name', 'Nombre'), ('likes_count', 'Me gusta')]
+
 
 class WorkoutTermSearchForm(forms.Form):
     term = forms.CharField(label="Término", widget=forms.TextInput, required=False)
+
+    order = forms.ChoiceField(
+        label="Orden",
+        choices=[],
+        initial="name",
+        required=False
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['order'].choices = [('name', 'Nombre'), ('popularity', 'Popularidad'), ('likes_count', 'Me gusta'), ('creationDate', 'Fecha de creación')]
 
  
 class WorkoutSearchForm(forms.Form):
@@ -80,6 +111,13 @@ class WorkoutSearchForm(forms.Form):
         initial="N/A",
         required=False
     )
+    order = forms.ChoiceField(
+        label="Orden",
+        choices=[],
+        initial="name",
+        required=False
+    )
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -96,3 +134,4 @@ class WorkoutSearchForm(forms.Form):
         self.fields['workoutCategory'].choices = [(cat, cat) for cat in unique_categories if cat]
         self.fields['level'].choices = [(level, level) for level in levels if level]
         self.fields['gender'].choices = [(gender, gender) for gender in genders if gender]
+        self.fields['order'].choices = [('name', 'Nombre'), ('popularity', 'Popularidad'), ('likes_count', 'Me gusta'), ('creationDate', 'Fecha de creación')]
