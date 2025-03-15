@@ -16,7 +16,7 @@
         ">
 
             <div class="card-text" style="justify-items: center; padding-top: 10px;">
-                <h4 class="card-title"><a style="color:black" href='/rutina/{{rutina.idWorkout}}'>{{ rutina.workoutName }}</a></h4>
+                <h4 class="card-title"><a style="color:black" href='/rutina/{{rutina.id}}'>{{ rutina.workoutName }}</a></h4>
                 <hr style="
                     width: 50vh;
                     border-top: 1px solid black;
@@ -47,14 +47,17 @@
                     {% endif %}
 
                 </p>
-                <button 
-                    class="favourite-btn {% if rutina.is_favourite %}favourite{% endif %}" 
-                    style="position: absolute; right: 2%; top: 12%;"
-                    data-type="w" 
-                    data-id="{{ rutina.idWorkout }}">
-                    ❤
-                </button>
-
+                <div
+                style="position: absolute; right: 2%; top: 12%;"
+                >
+                    <p>{{rutina.likes_count}}</p>
+                    <button 
+                        class="favourite-btn {% if rutina.is_favourite %}favourite{% endif %}" 
+                        data-type="w" 
+                        data-id="{{ rutina.id }}">
+                        ❤
+                    </button>
+                </div>
             </div>        
         </div>
     </div>
