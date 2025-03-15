@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'WorkoutRS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'workoutrs_db',
+        'NAME': 'workoutrs_db_prueba',
         'USER': 'usuario',
         'PASSWORD': '1234',
         'HOST': 'localhost',
