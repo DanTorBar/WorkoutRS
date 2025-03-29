@@ -1,5 +1,7 @@
 {% extends 'master.html' %}
 
+{% load threadedcomments_tags %}
+
 {% block titulo %} Detalles del Ejercicio {% endblock %}
 
 {% block contenido %}
@@ -55,6 +57,12 @@
         </div>
     </div>
 </div>
+
+<h2>Comentarios</h2>
+
+{% render_comment_list for ejercicio %}
+{% render_comment_form for ejercicio %}
+
 
 <div>
     <br>
