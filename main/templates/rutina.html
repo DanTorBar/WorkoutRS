@@ -1,4 +1,5 @@
 {% extends 'master.html' %}
+{% load threadedcomments_tags %}
 
 {% block titulo %} Detalles de la Rutina {% endblock %}
 
@@ -76,6 +77,12 @@
         </div>
     </div>
 </div>
+
+<h2>Comentarios</h2>
+
+{% render_comment_list for rutina %}
+{% render_comment_form for rutina %}
+
 
 <div>
     <h2 style="text-align: center">Rutinas similares</h2>

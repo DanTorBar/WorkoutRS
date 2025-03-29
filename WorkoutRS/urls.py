@@ -1,6 +1,6 @@
 from main import views
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.contrib.auth import views as auth_views
 
 
@@ -25,5 +25,6 @@ urlpatterns = [
     path('favoritos/eliminar/<str:type>/<int:id>/', views.delete_favourite, name='eliminar_favorito'),
     path('recomendar/rutinas/<int:id>/', views.recommend_workouts, name='recomendar_rutinas'),
     path('recomendar/ejercicios/<int:id>/', views.recommend_exercises, name='recomendar_ejercicios'),
+    path(r'comments/', include('django_comments.urls')),
 
 ]
