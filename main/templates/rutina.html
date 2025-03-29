@@ -1,17 +1,17 @@
 {% extends 'master.html' %}
+{% load threadedcomments_tags %}
 
 {% block titulo %} Detalles de la Rutina {% endblock %}
-
 
 {% block contenido %}
 <br>
 
-<div class="card mb-4 shadow-sm" style="justify-items: center;">
+<div class="card mb-4 shadow-sm" style="justify-items: center; padding-bottom: 1px;">
     <div class="card-body" style="
         display: flex;
         justify-content: space-between;
         margin-bottom: 30px;
-        background-color: #e7e7e7;
+        background-color: #cae8f1;
         padding: 10px;
         width: 90%;
         flex-direction: column;
@@ -20,13 +20,13 @@
         border-radius: 10px;
     ">
         <div style="
-        position: fixed;
+        position: absolute;
         right: 11vh;
         top: 38vh;">
             <a href="javascript:history.back()">Atrás</a>
         </div>
         <div class="card-text" style="justify-items: center; padding-top: 10px;">
-            <h4 class="card-title">{{ rutina.workoutName }}</h4>
+            <h3 class="card-title">{{ rutina.workoutName }}</h3>
             <hr style="
                 width: 50vh;
                 border-top: 1px solid black;
@@ -39,11 +39,11 @@
             <div style="
                 align-self: center;
             ">
-                <strong>Categoría:</strong> {{ rutina.workoutCategory }}<br>
-                <strong>Nivel:</strong> {{ rutina.level|default:"N/A" }}<br>
-                <strong>Género:</strong> {{ rutina.gender|default:"N/A" }}<br>
-                <strong>Partes del cuerpo:</strong> {{ rutina.bodyPart|default:"N/A" }}<br>
-                <strong>Descripción:</strong> {{ rutina.description|default:"N/A" }}<br>
+                <strong>Categoría: &nbsp;</strong> {{ rutina.workoutCategory }}<br>
+                <strong>Nivel: &nbsp;</strong> {{ rutina.level|default:"N/A" }}<br>
+                <strong>Género: &nbsp;</strong> {{ rutina.gender|default:"N/A" }}<br>
+                <strong>Partes del cuerpo: &nbsp;</strong> {{ rutina.bodyPart|default:"N/A" }}<br>
+                <strong>Descripción: &nbsp;</strong> {{ rutina.description|default:"N/A" }}<br>
             </div>
         </div>
         <div class="info" style="
@@ -64,9 +64,9 @@
                             </thead>
                             <tbody>
                                 {% for exercise in day %}
-                                    <tr style="border-bottom: 1px solid #dee2e6;">
+                                    <tr>
                                         <td style="padding: 10px; color: #495057;"></td>
-                                        <td style="padding: 10px; color: #495057;"><a href='/ejercicio/{{exercise.idExercise}}'> {{ exercise.exerciseName }}</a></td>
+                                        <td style="padding: 10px; color: #495057;"><a href='/ejercicio/{{exercise.id}}'> {{ exercise.exerciseName }}</a></td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -76,6 +76,20 @@
             {% endfor %}        
         </div>
     </div>
+</div>
+
+<h2>Comentarios</h2>
+
+{% render_comment_list for rutina %}
+{% render_comment_form for rutina %}
+
+
+<div>
+    <h2 style="text-align: center">Rutinas similares</h2>
+    {% if rutinas %}
+        {% include 'lista_rutinas.html' %}
+    {% endif %}
+
 </div>
 
 {% endblock %}

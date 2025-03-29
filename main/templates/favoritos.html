@@ -1,0 +1,25 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Mis favoritos {% endblock %}
+
+{% block contenido %} 
+<br>
+<div id="fav-container">
+        
+    {% if favourites %}
+        {% if rutinas %}
+            <h3 style="text-align: center;">Rutinas favoritas</h3>
+            {% include 'lista_rutinas.html' %}
+        {% endif %}
+        {% if ejercicios %}
+            <h3 style="text-align: center;">Ejercicios favoritos</h3>
+            {% include 'lista_ejercicios.html' %}
+        {% endif %}
+
+    {% else %}
+        <h4 class="text-muted">No tienes elementos favoritos todavía.</h4>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,16 +1,18 @@
 {% extends 'master.html' %}
 
+{% load threadedcomments_tags %}
+
 {% block titulo %} Detalles del Ejercicio {% endblock %}
 
 {% block contenido %}
 <br>
 
-<div class="card mb-4 shadow-sm" style="justify-items: center;">
+<div class="card mb-4 shadow-sm" style="justify-items: center; padding-bottom: 1px;">
     <div class="card-body" style="
         display: flex;
         justify-content: space-between;
         margin-bottom: 30px;
-        background-color: #e7e7e7;
+        background-color: #cae8f1;
         padding: 10px;
         width: 90%;
         flex-direction: column;
@@ -19,13 +21,13 @@
         border-radius: 10px;
     ">
         <div style="
-        position: fixed;
+        position: absolute;
         right: 11vh;
         top: 38vh;">
         <a href="javascript:history.back()">Atrás</a>
         </div>
         <div class="card-text" style="justify-items: center; padding-top: 10px;">
-            <h4 class="card-title">{{ ejercicio.exerciseName }}</h4>
+            <h3 class="card-title">{{ ejercicio.exerciseName }}</h3>
             <hr style="
                 width: 50vh;
                 border-top: 1px solid black;
@@ -38,10 +40,10 @@
             <div style="
                 align-self: center;
             ">
-                <strong>Categoría:</strong> {{ ejercicio.exerciseCategory|default:"N/A" }}<br>
-                <strong>Músculos principales:</strong> {{ ejercicio.priMuscles.all|join:", "|default:"N/A" }}<br>
-                <strong>Músculos secundarios:</strong> {{ ejercicio.secMuscles.all|join:", "|default:"N/A" }}<br>
-                <strong>Video:</strong> {% if ejercicio.video %}<a href="{{ ejercicio.video }}" target="_blank">Ver video</a>{% else %}N/A{% endif %}<br>
+                <strong>Categoría: &nbsp;</strong> {{ ejercicio.exerciseCategory|default:"N/A" }}<br>
+                <strong>Músculos principales: &nbsp;</strong> {{ ejercicio.priMuscles.all|join:", "|default:"N/A" }}<br>
+                <strong>Músculos secundarios: &nbsp;</strong> {{ ejercicio.secMuscles.all|join:", "|default:"N/A" }}<br>
+                <strong>Video: &nbsp;</strong> {% if ejercicio.video %}<a href="{{ ejercicio.video }}" target="_blank">Ver video</a>{% else %}N/A{% endif %}<br>
             </div>
         </div>
         <div class="info" style="
@@ -50,10 +52,25 @@
             justify-content: center;
         ">
             <br><br>
-            <strong>Instrucciones:</strong>
+            <strong>Instrucciones: &nbsp;</strong>
             <p>{{ ejercicio.instructions|default:"N/A" }}</p>
         </div>
     </div>
+</div>
+
+<h2>Comentarios</h2>
+
+{% render_comment_list for ejercicio %}
+{% render_comment_form for ejercicio %}
+
+
+<div>
+    <br>
+    <h2 style="text-align: center">Ejercicios similares</h2>
+    {% if ejercicios %}
+        {% include 'lista_ejercicios.html' %}
+    {% endif %}
+
 </div>
 
 {% endblock %}

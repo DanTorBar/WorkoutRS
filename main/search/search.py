@@ -1,12 +1,11 @@
+from datetime import timedelta
 import time
 from tkinter import *
-from tkinter import messagebox
 import os, shutil, sys
 from whoosh.index import create_in, open_dir
-from whoosh.fields import Schema, TEXT, KEYWORD, ID, STORED
-from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
-from whoosh import query
-from tkinter import messagebox
+from whoosh.fields import Schema, TEXT, KEYWORD, ID
+from whoosh.qparser import MultifieldParser, OrGroup
+from django.utils.timezone import now
 from whoosh.analysis import KeywordAnalyzer
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,36 +14,26 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'WorkoutRS.settings')
 import django
 django.setup()
 
-from main.models import Exercise, Workout
+from main.models import Exercise, Favourite, Workout
 from main.scrapping.scrapping import extraer_rutinas_y_ejercicios
 
  
 def almacenar_datos():
-
-    esquema_rutina = Schema(
-        workoutName=TEXT(stored=True, phrase=True),
-        workoutCategory=TEXT(analyzer=KeywordAnalyzer(), stored=True),
-        level=KEYWORD(stored=True, commas=True, lowercase=True),
-        gender=KEYWORD(stored=True, commas=True, lowercase=True),
-        bodyPart=TEXT(analyzer=KeywordAnalyzer(), stored=True),
-        description=TEXT(stored=True, phrase=True),
-        day1=STORED,
-        day2=STORED,
-        day3=STORED,
-        day4=STORED,
-        day5=STORED,
-        day6=STORED,
-        day7=STORED
-    )
 
     esquema_ejercicio = Schema(
         idExercise=ID(stored=True, unique=True),
         exerciseName=TEXT(stored=True, phrase=True),
         exerciseCategory=TEXT(analyzer=KeywordAnalyzer(), stored=True),
         priMuscles=TEXT(analyzer=KeywordAnalyzer(), stored=True),
-        secMuscles=TEXT(analyzer=KeywordAnalyzer(), stored=True),
-        video=TEXT(stored=True, phrase=False),
-        instructions=TEXT(stored=True, phrase=True),
+        secMuscles=TEXT(analyzer=KeywordAnalyzer(), stored=True)
+    )
+
+    esquema_rutina = Schema(
+        idWorkout=ID(stored=True, unique=True),
+        workoutName=TEXT(stored=True, phrase=True),
+        workoutCategory=TEXT(analyzer=KeywordAnalyzer(), stored=True),
+        level=KEYWORD(stored=True, commas=True, lowercase=True),
+        gender=KEYWORD(stored=True, commas=True, lowercase=True)
     )
 
     # Eliminar directorios de índices si existen
@@ -65,7 +54,7 @@ def almacenar_datos():
     writer_rutina = ix_rutina.writer()
 
     start_time = time.time()
-    # extraer_rutinas_y_ejercicios()
+    extraer_rutinas_y_ejercicios()
     end_time = time.time()
 
     print(f"Tiempo de extracción: {end_time - start_time} segundos")
@@ -73,38 +62,24 @@ def almacenar_datos():
     lista_ejercicios = Exercise.objects.all()
     lista_rutinas = Workout.objects.all()
 
-    # Añadir ejercicios al índice
-    for ejercicio in lista_ejercicios:
+    for ejercicio in Exercise.objects.all():
         writer_ejercicio.add_document(
-            idExercise=str(ejercicio.idExercise),  # Acceder al id del ejercicio
-            exerciseName=str(ejercicio.exerciseName),
-            exerciseCategory=str(ejercicio.exerciseCategory),
-            priMuscles=",".join([str(musculo.name) for musculo in ejercicio.priMuscles.all()]),
-            secMuscles=",".join([str(musculo.name) for musculo in ejercicio.secMuscles.all()]),
-            video=str(ejercicio.video) if ejercicio.video else '',  # Verificar si hay video
-            instructions=str(ejercicio.instructions) if ejercicio.instructions else '',  # Verificar si hay instrucciones
+            idExercise=str(ejercicio.id),
+            exerciseName=ejercicio.exerciseName,
+            exerciseCategory=ejercicio.exerciseCategory,
+            priMuscles=",".join(m.name for m in ejercicio.priMuscles.all()),
+            secMuscles=",".join(m.name for m in ejercicio.secMuscles.all())
         )
-        print(f"Se ha añadido el ejercicio {ejercicio.exerciseName} al índice")
-
-    # Añadir rutinas al índice
-    for rutina in lista_rutinas:
+    
+    for rutina in Workout.objects.all():
         writer_rutina.add_document(
-            workoutName=str(rutina.workoutName),
-            workoutCategory=str(rutina.workoutCategory),
-            level=str(rutina.level),
-            gender=str(rutina.gender),
-            bodyPart=str(rutina.bodyPart),
-            description=str(rutina.description) if rutina.description else '',  # Verificar si hay descripción
-            day1=[str(ejercicio.idExercise) for ejercicio in rutina.day1.all()],
-            day2=[str(ejercicio.idExercise) for ejercicio in rutina.day2.all()],
-            day3=[str(ejercicio.idExercise) for ejercicio in rutina.day3.all()],
-            day4=[str(ejercicio.idExercise) for ejercicio in rutina.day4.all()],
-            day5=[str(ejercicio.idExercise) for ejercicio in rutina.day5.all()],
-            day6=[str(ejercicio.idExercise) for ejercicio in rutina.day6.all()],
-            day7=[str(ejercicio.idExercise) for ejercicio in rutina.day7.all()]
+            idWorkout=str(rutina.id),
+            workoutName=rutina.workoutName,
+            workoutCategory=rutina.workoutCategory,
+            level=rutina.level,
+            gender=rutina.gender
         )
-        print(f"Se ha añadido la rutina {rutina.workoutName} al índice")
-    # Commit writers
+    
     writer_ejercicio.commit()
     writer_rutina.commit()
     
@@ -113,21 +88,33 @@ def almacenar_datos():
     return mensaje
 
 
-def ej_buscar_nombre_instrucciones(cadena):
+def buscar_ejercicios_por_nombre_instrucciones(cadena, user, order='name'):
     try:
         ix = open_dir("IndexEjercicio")
-    except IndexError:
-        return []  # Devuelve una lista vacía si no se puede abrir el índice
-
+    except Exception:
+        return []
+    
     with ix.searcher() as searcher:
-        query = MultifieldParser(["exerciseName", "instructions"], ix.schema).parse(f'"{cadena}"')
-        results = searcher.search(query, limit=100)
-        result_list = [dict(result) for result in results]
-        
-    return result_list
+        parser = MultifieldParser(["exerciseName"], ix.schema, group=OrGroup)
+        results = searcher.search(parser.parse(f'"{cadena}"'), limit=100)
+        ids = [r['idExercise'] for r in results]
+    
+    ejercicios = list(Exercise.objects.filter(id__in=ids).values("id", "exerciseName", "instructions"))
+    
+    if order == 'name':
+        ejercicios = sorted(ejercicios, key=lambda x: x["exerciseName"].lower())
+    elif order == 'likes_count':
+        ejercicios = sorted(ejercicios, key=lambda x: x.get("likes_count", 0), reverse=True)
+    
+    if user and user.is_authenticated:
+        favoritos = set(Favourite.objects.filter(user=user, exercise_id__in=ids).values_list('exercise_id', flat=True))
+        for ejercicio in ejercicios:
+            ejercicio["is_favourite"] = ejercicio["id"] in favoritos
+    
+    return ejercicios
 
 
-def ej_buscar(name, cat, muscle):
+def ej_buscar(name, cat, muscle, user, order='name'):
     try:
         ix = open_dir("IndexEjercicio")
     except Exception as e:
@@ -138,7 +125,6 @@ def ej_buscar(name, cat, muscle):
         fields = ["exerciseName", "exerciseCategory", "priMuscles", "secMuscles"]
         parser = MultifieldParser(fields, schema=ix.schema, group=OrGroup)
 
-        # Construye la consulta de forma dinámica
         query_parts = []
         if name:
             query_parts.append(f'(exerciseName:"{name}" OR exerciseName:*"{name}"*)')
@@ -147,23 +133,27 @@ def ej_buscar(name, cat, muscle):
         if muscle:
             query_parts.append(f'((priMuscles:*"{muscle}"* OR secMuscles:"{muscle}") OR (priMuscles:"{muscle}" OR secMuscles:"{muscle}"))')
 
-        # Combina las partes de la consulta
-        if query_parts:
-            query_string = " AND ".join(query_parts)
-        else:
-            query_string = "*:*"  # Devuelve todos los documentos si no hay términos de búsqueda
+        query_string = " AND ".join(query_parts) if query_parts else "*:*"
+        query = parser.parse(query_string)
+        results = searcher.search(query, limit=100)
+        ids = [r['idExercise'] for r in results]
+            
+    ejercicios = list(Exercise.objects.filter(id__in=ids).select_related())
+    
+    if order == 'name':
+        ejercicios = sorted(ejercicios, key=lambda x: x.exerciseName.lower())
+    elif order == 'likes_count':
+        ejercicios = sorted(ejercicios, key=lambda x: x.likes_count, reverse=True)
+    
+    if user and user.is_authenticated:
+        favoritos = set(Favourite.objects.filter(user=user, exercise_id__in=ids).values_list('exercise_id', flat=True))
+        for ejercicio in ejercicios:
+            ejercicio.is_favourite = ejercicio.id in favoritos
 
-        try:
-            query = parser.parse(query_string)
-            results = searcher.search(query, limit=100)
-            result_list = [dict(result) for result in results]
-            return result_list
-        except Exception as e:
-            print(f"Error parsing query: {e}")
-            return []
+    return ejercicios
 
 
-def ru_buscar(name, cat, level, gender):
+def ru_buscar(name, cat, level, gender, user, order='name'):
     try:
         ix = open_dir("IndexRutina")
     except Exception as e:
@@ -174,7 +164,6 @@ def ru_buscar(name, cat, level, gender):
         fields = ["workoutName", "workoutCategory", "level", "gender"]
         parser = MultifieldParser(fields, schema=ix.schema, group=OrGroup)
 
-        # Construye la consulta de forma dinámica
         query_parts = []
         if name:
             query_parts.append(f'(workoutName:"{name}"* OR workoutName:"{name}")')
@@ -185,127 +174,68 @@ def ru_buscar(name, cat, level, gender):
         if gender:
             query_parts.append(f'gender:{gender}')
 
-        # Combina las partes de la consulta
-        if query_parts:
-            query_string = " AND ".join(query_parts)
-        else:
-            query_string = "*:*"  # Devuelve todos los documentos si no hay términos de búsqueda
-
-        try:
-            query = parser.parse(query_string)
-            print(f"Constructed query: {query}")
-            results = searcher.search(query, limit=100)
-            result_list = [dict(result) for result in results]
-            print(f"Search results: {len(result_list)}")
-            return result_list
-        except Exception as e:
-            print(f"Error parsing query: {e}")
-            return []
+        query_string = " AND ".join(query_parts) if query_parts else "*:*"
+        query = parser.parse(query_string)
+        results = searcher.search(query, limit=100)
+        ids = [r['idWorkout'] for r in results]
     
-def ru_buscar_nombre_descripcion(cadena):
+    rutinas = list(Workout.objects.filter(id__in=ids).select_related())
+    
+    if order == 'name':
+        rutinas = sorted(rutinas, key=lambda x: x.workoutName.lower())
+    elif order == 'popularity':
+        recent_period = now() - timedelta(days=14)
+        for rutina in rutinas:
+            rutina.recent_likes = Favourite.objects.filter(workout=rutina, date_added__gte=recent_period).count()
+        rutinas = sorted(rutinas, key=lambda x: getattr(x, 'recent_likes', 0), reverse=True)
+    elif order == 'likes_count':
+        rutinas = sorted(rutinas, key=lambda x: x.likes_count, reverse=True)
+    elif order == 'creationDate':
+        rutinas = sorted(rutinas, key=lambda x: x.creationDate, reverse=True)
+    
+    if user and user.is_authenticated:
+        favoritos = set(Favourite.objects.filter(user=user, workout_id__in=ids).values_list('workout_id', flat=True))
+        for rutina in rutinas:
+            rutina.is_favourite = rutina.id in favoritos
+    
+    return rutinas
+
+    
+def buscar_rutinas_por_nombre_descripcion(cadena, user, order='name'):
     try:
         ix = open_dir("IndexRutina")
-    except IndexError:
+    except Exception:
         return []
-
+    
     with ix.searcher() as searcher:
-        query = MultifieldParser(["workoutName", "description"], ix.schema).parse(f'"{cadena}"*')
-        results = searcher.search(query, limit=100)
-        result_list = [dict(result) for result in results]
+        parser = MultifieldParser(["workoutName"], ix.schema, group=OrGroup)
+        results = searcher.search(parser.parse(f'"{cadena}"'), limit=100)
+        ids = [r['idWorkout'] for r in results]
+        print(cadena)
+        print(results)
+        print(ids)
         
-    return result_list
-
-    
-def buscar_caracteristicas_titulo():
-    def mostrar_lista(event):
-        ix=open_dir("Index")      
-        with ix.searcher() as searcher:
-            lista_caracteristicas = [i.decode('utf-8') for i in searcher.lexicon('caracteristicas')]
-            entrada = str(en.get().lower())
-            if entrada not in lista_caracteristicas:
-                messagebox.showinfo("Error", "El criterio de búsqueda no es una característica existente\nLas características existentes son: " + ",".join(lista_caracteristicas))
-                return
-            query = QueryParser("titulo", ix.schema).parse('caracteristicas:'+ entrada +' '+str(en1.get()))
-            print('caracteristicas:'+ entrada +' '+str(en1.get()))
-            print(query)
-            results = searcher.search(query, limit=10)
-            listar_rutinas(results)
-    
-    v = Toplevel()
-    v.title("Busqueda por Características y título")
-    l = Label(v, text="Introduzca característica a buscar:")
-    l.pack(side=LEFT)
-
-    
-    ix=open_dir("Index")      
-    with ix.searcher() as searcher:
-        lista_caracteristicas = [i.decode('utf-8') for i in searcher.lexicon('caracteristicas')]
-    
-    en = Spinbox(v, values=lista_caracteristicas, state="readonly")
-    en.pack(side=LEFT)
-
-    l1 = Label(v, text="Introduzca Título")
-    l1.pack(side=LEFT)
-    en1 = Entry(v)
-    en1.pack(side=LEFT)
-
-    en1.bind("<Return>", mostrar_lista)
-
-
-def listar_titulo_introduccion(results):      
-    v = Toplevel()
-    sc = Scrollbar(v)
-    sc.pack(side=RIGHT, fill=Y)
-    lb = Listbox(v, width=150, yscrollcommand=sc.set)
-    for row in results:
-        s = 'TÍTULO: ' + row['titulo']
-        lb.insert(END, s)       
-        s = "INTRODUCCIÓN: " + row['introduccion']
-        lb.insert(END, s)
-        lb.insert(END,"------------------------------------------------------------------------\n")
-    lb.pack(side=LEFT, fill=BOTH)
-    sc.config(command=lb.yview)
-
-    
-def ventana_principal():
         
-    def listar_rutinas():
-        ix=open_dir("IndexRutina")
-        with ix.searcher() as searcher:
-            results = searcher.search(query.Every(),limit=None)
-            listado_rutinas(results) 
-
-    def listar_ejercicios():
-        ix=open_dir("IndexEjercicio")
-        with ix.searcher() as searcher:
-            results = searcher.search(query.Every(),limit=None)
-            listado_rutinas(results) 
-
+    rutinas = list(Workout.objects.filter(id__in=ids).select_related())
     
-    root = Tk()
-    menubar = Menu(root)
+    if order == 'name':
+        rutinas = sorted(rutinas, key=lambda x: x.workoutName.lower())
+    elif order == 'popularity':
+        recent_period = now() - timedelta(days=14)
+        for rutina in rutinas:
+            rutina.recent_likes = Favourite.objects.filter(workout=rutina, date_added__gte=recent_period).count()
+        rutinas = sorted(rutinas, key=lambda x: getattr(x, 'recent_likes', 0), reverse=True)
+    elif order == 'likes_count':
+        rutinas = sorted(rutinas, key=lambda x: x.likes_count, reverse=True)
+    elif order == 'creationDate':
+        rutinas = sorted(rutinas, key=lambda x: x.creationDate, reverse=True)
     
-    datosmenu = Menu(menubar, tearoff=0)
-    datosmenu.add_command(label="Cargar", command=cargar)
-    datosmenu.add_command(label="Listar rutinas", command=listar_rutinas)
-    datosmenu.add_command(label="Listar ejercicios", command=listar_ejercicios)
-
-    datosmenu.add_separator()   
-
-    datosmenu.add_command(label="Salir", command=root.quit)
+    if user and user.is_authenticated:
+        favoritos = set(Favourite.objects.filter(user=user, workout_id__in=ids).values_list('workout_id', flat=True))
+        for rutina in rutinas:
+            rutina.is_favourite = rutina.id in favoritos
     
-    menubar.add_cascade(label="Datos", menu=datosmenu)
-    
-    buscarmenu = Menu(menubar, tearoff=0)
-    buscarmenu.add_command(label="Título o Introducción", command=buscar_titulo_introduccion)
-    buscarmenu.add_command(label="Características y Título", command=buscar_caracteristicas_titulo)
-
-    menubar.add_cascade(label="Buscar", menu=buscarmenu)
-        
-    root.config(menu=menubar)
-    root.mainloop()
-
-    
+    return rutinas
 
 if __name__ == "__main__":
     # ru_buscar(name="Single", cat="Thighs", level="aaa", bodyPart="bbb", gender="male")
