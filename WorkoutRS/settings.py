@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "threadedcomments",
-    "django_comments",
-    "django.contrib.sites",
+    # "threadedcomments",
+    # "django_comments",
+    # "django.contrib.sites",
     "main",
 ]
 
