@@ -18,6 +18,7 @@ django.setup()
 
 from django.contrib.auth.models import User
 from main.models import Workout, Exercise, Muscle, WorkoutExercise
+from main.LLM_processing.translator_module import translate_text
 
 # lineas para evitar error SSL
 if not os.environ.get("PYTHONHTTPSVERIFY", "") and getattr(
@@ -29,24 +30,31 @@ if not os.environ.get("PYTHONHTTPSVERIFY", "") and getattr(
 def store_exercise(
     id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions
 ):
+    exerciseName_es = translate_text(exerciseName)
+    exerciseCategory_es = translate_text(exerciseCategory)
+    instructions_es = translate_text(instructions)
+    
+    print(exerciseName_es)
+
     primary_muscles = [
-        Muscle.objects.get_or_create(name=muscle)[0] for muscle in priMuscles.split(",")
+        Muscle.objects.get_or_create(name=translate_text(muscle))[0] for muscle in priMuscles.split(",")
     ]
     secondary_muscles = [
-        Muscle.objects.get_or_create(name=muscle)[0] for muscle in secMuscles.split(",")
+        Muscle.objects.get_or_create(name=translate_text(muscle))[0] for muscle in secMuscles.split(",")
     ]
 
     exercise, created = Exercise.objects.get_or_create(
         id=id_,
         defaults={
-            "exerciseName": exerciseName,
-            "exerciseCategory": exerciseCategory,
+            "exerciseName": exerciseName_es,
+            "exerciseCategory": exerciseCategory_es,
             "video": video,
-            "instructions": instructions,
+            "instructions": instructions_es,
             "likes_count": 0,
         },
     )
     if created:
+        print(exercise.__dict__)
         exercise.priMuscles.set(primary_muscles)
         exercise.secMuscles.set(secondary_muscles)
         exercise.save()
@@ -59,21 +67,26 @@ def store_exercise(
 def store_workout(
     workoutName, workoutCategory, level, gender, bodyPart, description, days
 ):
+    workoutName_es = translate_text(workoutName)
+    workoutCategory_es = translate_text(workoutCategory)
+    level_es = translate_text(level)
+    gender_es = translate_text(gender)
+    description_es = translate_text(description)
 
     workout, _ = Workout.objects.get_or_create(
-        workoutName=workoutName,
+        workoutName=workoutName_es,
         defaults={
-            "workoutCategory": workoutCategory,
-            "level": level,
-            "gender": gender,
-            "description": description,
+            "workoutCategory": workoutCategory_es,
+            "level": level_es,
+            "gender": gender_es,
+            "description": description_es,
             "bodyPart": bodyPart,
             "creator_id": User.objects.get(username="admin").id,
             "creationDate": datetime.now(),
             "likes_count": 0,            
         },
     )
-    
+
     workout.creator_id = User.objects.get(username="admin").id
 
     for day, exercises in enumerate(days, start=1):
@@ -132,7 +145,7 @@ def extraer_rutinas_y_ejercicios():
     try:
         # Realizar la solicitud POST
         response = requests.post(url, headers=headers, data=body, timeout=50)
-        response.raise_for_status()  # Esto lanzará una excepción si la solicitud no fue exitosa
+        # response.raise_for_status()  # Esto lanzará una excepción si la solicitud no fue exitosa
 
         # PRUEBA
         with open("main/scrapping/data/request.html", "r") as file:
@@ -251,7 +264,7 @@ def extraer_rutinas_y_ejercicios():
                             .parent.find_next("div", class_="CustomWorkoutDetailsData")
                             .string.strip()
                         )
-                        bodyPart = ",".join([p.strip() for p in bodyPart.split(",")])
+                        bodyPart = ",".join([translate_text(p.strip()) for p in bodyPart.split(",")])
                     else:
                         bodyPart = "N/A"
 
