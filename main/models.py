@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# Exercise related models
 class Muscle(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -41,6 +42,99 @@ class Workout(models.Model):
         ordering = ['workoutName']
 
 
+class WorkoutExercise(models.Model):
+    
+    DAYS_OF_WEEK = [
+        (1, "Lunes"),
+        (2, "Martes"),
+        (3, "Miércoles"),
+        (4, "Jueves"),
+        (5, "Viernes"),
+        (6, "Sábado"),
+        (7, "Domingo"),
+    ]
+
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    day = models.IntegerField(choices=DAYS_OF_WEEK)
+
+    def __str__(self):
+        return f"{self.workout.workoutName} - {self.exercise.exerciseName}"
+
+    class Meta:
+        unique_together = ('workout', 'exercise', 'day')
+
+# User related models
+from django.conf import settings
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+ACTIVITY_LEVEL_CHOICES = [(i, str(i)) for i in range(6)]
+
+class HealthProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    # --- Datos personales ---
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=20, choices=[
+        ('masculino', 'MASCULINO'),
+        ('femenino', 'FEMENINO'),
+        ('otro', 'OTRO'),
+        ('desconocido', 'DESCONOCIDO'),
+    ], default='unknown')
+
+    height_cm = models.PositiveSmallIntegerField(null=True, blank=True)
+    weight_kg = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+    # --- Objetivos y condiciones ---
+    goals         = models.ManyToManyField('Goal', blank=True, verbose_name=_("Objetivos"))
+    conditions    = models.ManyToManyField('Condition', blank=True, verbose_name=_("Condiciones"))
+
+    # --- Entornos y equipamiento disponible ---
+    equipment     = models.ManyToManyField('Equipment', blank=True, verbose_name=_("Equipamiento"))
+    environment   = models.CharField(_("Entorno"), max_length=200, blank=True)
+
+    # --- Datos importados (minutos semanales) ---
+    imported_neat_min = models.PositiveIntegerField(null=True, blank=True, help_text="Actividad general (NEAT)")
+    imported_cardio_mod_min = models.PositiveIntegerField(null=True, blank=True, help_text="Cardio moderado")
+    imported_cardio_vig_min = models.PositiveIntegerField(null=True, blank=True, help_text="Cardio vigoroso")
+    imported_strength_min = models.PositiveIntegerField(null=True, blank=True, help_text="Entrenamiento de fuerza")
+
+    # --- Fallback manual (niveles 0–5) ---
+    neat_level = models.PositiveSmallIntegerField(choices=ACTIVITY_LEVEL_CHOICES, default=0)
+    cardio_mod_level = models.PositiveSmallIntegerField(choices=ACTIVITY_LEVEL_CHOICES, default=0)
+    cardio_vig_level = models.PositiveSmallIntegerField(choices=ACTIVITY_LEVEL_CHOICES, default=0)
+    strength_level = models.PositiveSmallIntegerField(choices=ACTIVITY_LEVEL_CHOICES, default=0)
+
+    # --- Timestamps ---
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
+    def __str__(self):
+        return f"HealthProfile of {self.user.username}"
+
+class Goal(models.Model):
+    name = models.CharField(max_length=100)
+    def __str__(self):
+        return self.name
+
+class Condition(models.Model):
+    name = models.CharField(max_length=100)
+    def __str__(self):
+        return self.name
+
+class Equipment(models.Model):
+    name = models.CharField(max_length=100)
+    def __str__(self):
+        return self.name
+
+
+#Social related models
 class Favourite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favourite')
     workout = models.ForeignKey('Workout', on_delete=models.CASCADE, null=True, blank=True)
@@ -80,43 +174,6 @@ class Favourite(models.Model):
         elif self.exercise:
             exercise.likes_count = Favourite.objects.filter(exercise=exercise).count()
             exercise.save()
-
-
-class UserData(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    weight = models.FloatField(verbose_name='Weight', null=True)
-    height = models.FloatField(verbose_name='Height', null=True)
-    age = models.IntegerField(verbose_name='Age', null=True)
-    BMI = models.FloatField(verbose_name='BMI', null=True)
-    activityLevel = models.CharField(max_length=100, verbose_name='Activity Level', null=True)
-    goals = models.CharField(max_length=100, verbose_name='Goal', null=True)
-    conditions = models.TextField(verbose_name='Conditions', null=True)
-    
-    def __str__(self):
-        return self.user.username
-
-class WorkoutExercise(models.Model):
-    
-    DAYS_OF_WEEK = [
-        (1, "Lunes"),
-        (2, "Martes"),
-        (3, "Miércoles"),
-        (4, "Jueves"),
-        (5, "Viernes"),
-        (6, "Sábado"),
-        (7, "Domingo"),
-    ]
-
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    day = models.IntegerField(choices=DAYS_OF_WEEK)
-
-    def __str__(self):
-        return f"{self.workout.workoutName} - {self.exercise.exerciseName}"
-
-    class Meta:
-        unique_together = ('workout', 'exercise', 'day')
-
 
 
 class Comment(models.Model):
