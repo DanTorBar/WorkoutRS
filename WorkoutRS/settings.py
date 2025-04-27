@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,14 +20,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-23748p(hk_3#_#&gy!$%!1x52-5ym21(acgfg&*r$ifknjldgs"
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# settings.py (solo para DEBUG/local)
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+# Desactiva redirecciones obligatorias en local, pero mantén las otras seguridades:
+SECURE_SSL_REDIRECT = False
+SECURE_HSTS_SECONDS   = 0
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE    = False
+# SECURE_SSL_REDIRECT = True                  # (SOLO EN PRODUCCIÓN)
+# SECURE_HSTS_SECONDS = 31536000            # un año (SOLO EN PRODUCCIÓN)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Application definition
 
@@ -37,6 +48,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "django_extensions",
     # "threadedcomments",
     # "django_comments",
     # "django.contrib.sites",
