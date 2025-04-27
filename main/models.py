@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from main.constants import ACTIVITY_LEVEL_CHOICES
 
 # Exercise related models
 class Muscle(models.Model):
@@ -69,7 +70,6 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-ACTIVITY_LEVEL_CHOICES = [(i, str(i)) for i in range(6)]
 
 class HealthProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -100,7 +100,6 @@ class HealthProfile(models.Model):
     imported_neat_min = models.PositiveIntegerField(null=True, blank=True, help_text="Actividad general (NEAT)")
     imported_cardio_mod_min = models.PositiveIntegerField(null=True, blank=True, help_text="Cardio moderado")
     imported_cardio_vig_min = models.PositiveIntegerField(null=True, blank=True, help_text="Cardio vigoroso")
-    imported_strength_min = models.PositiveIntegerField(null=True, blank=True, help_text="Entrenamiento de fuerza")
 
     # --- Fallback manual (niveles 0–5) ---
     neat_level = models.PositiveSmallIntegerField(choices=ACTIVITY_LEVEL_CHOICES, default=0)

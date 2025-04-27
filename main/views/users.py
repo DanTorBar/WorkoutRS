@@ -9,23 +9,42 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from main.tasks import revoke_health_data
+from rest_framework import generics, permissions
+from main.serializers import RegisterSerializer
+from rest_framework.parsers import MultiPartParser
+from importers.manager import IMPORTERS  # tu dict { 'garmin': GarminImporter, ... }
 
 
 # Usuarios
 
-def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect(reverse('inicio'))
-        else:
-            print(form.errors)  # Esto mostrará los errores en la consola
+class RegisterAPIView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
 
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'register.html', {'form': form})
+
+class HealthDataPreImportView(APIView):
+    """
+    Recibe un ZIP de exportación (Garmin, Fitbit...) y devuelve los campos
+    que podemos rellenar del HealthProfile.
+    """
+    parser_classes = [MultiPartParser]
+    permission_classes = []  # AllowAny, no necesita login
+
+    def post(self, request, service_key):
+        zip_file = request.FILES.get('file')
+        if not zip_file:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        cls = IMPORTERS.get(service_key.lower())
+        if not cls:
+            return Response({'error': f'Unknown service {service_key}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            parsed = cls(zip_file).parse()
+            # parsed será un dict con keys: first_name, height, imported_neat_min, etc.
+            return Response(parsed)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def login_view(request):
