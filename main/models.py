@@ -133,6 +133,52 @@ class Equipment(models.Model):
     def __str__(self):
         return self.name
 
+class HealthDataConsent(models.Model):
+    """
+    Guarda el consentimiento explícito del usuario al tratamiento de sus datos de salud.
+    """
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="health_data_consent"
+    )
+    given = models.BooleanField(
+        default=False,
+        help_text="¿Ha dado el usuario consentimiento para procesar sus datos de salud?"
+    )
+    given_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Cuándo dio el usuario su consentimiento"
+    )
+
+    def __str__(self):
+        return f"{self.user.username}: consent={self.given}"
+
+from django.conf import settings
+from django.db import models
+
+class ActivityLog(models.Model):
+    ACTION_CHOICES = [
+        ('IMPORT',  'Importación de datos'),
+        ('DELETE',  'Borrado de datos'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='activity_logs'
+    )
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    detail = models.TextField(blank=True, help_text="Detalles adicionales en JSON o texto.")
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user.username} {self.action} at {self.timestamp}"
+
 
 #Social related models
 class Favourite(models.Model):

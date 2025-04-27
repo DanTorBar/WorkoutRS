@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.contrib.auth import views as auth_views
 from main.views.imports import GenericImportView
+from main.views.users import RevokeHealthDataConsentView
 
 
 urlpatterns = [
@@ -28,5 +29,7 @@ urlpatterns = [
     path('recomendar/ejercicios/<int:id>/', views.recommend_exercises, name='recomendar_ejercicios'),
     path(r'comments/', include('django_comments.urls')),
     path('import/', GenericImportView.as_view(), name='import'),
+    path('consent/revoke/', RevokeHealthDataConsentView.as_view(), name='revoke-consent'),
+
 
 ]

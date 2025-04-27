@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from datetime import date
-from .models import HealthProfile
-
+from .models import HealthProfile, HealthDataConsent
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 class HealthProfileSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
@@ -35,3 +36,29 @@ class HealthProfileSerializer(serializers.ModelSerializer):
             height_m = obj.height_cm / 100
             return round(float(obj.weight_kg) / (height_m ** 2), 2)
         return None
+
+User = get_user_model()
+
+class RegisterSerializer(serializers.ModelSerializer):
+    health_data_consent = serializers.BooleanField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password', 'health_data_consent')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def validate_health_data_consent(self, value):
+        if not value:
+            raise serializers.ValidationError("Debes aceptar el tratamiento de datos de salud.")
+        return value
+
+    def create(self, validated_data):
+        consent = validated_data.pop('health_data_consent')
+        user = super().create(validated_data)
+        # Creamos el registro de consentimiento
+        HealthDataConsent.objects.create(
+            user=user,
+            given=consent,
+            given_at=timezone.now() if consent else None
+        )
+        return user
