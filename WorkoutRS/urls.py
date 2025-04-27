@@ -2,6 +2,8 @@ from main import views
 from django.contrib import admin
 from django.urls import include, path
 from django.contrib.auth import views as auth_views
+from main.views.imports import GenericImportView
+from main.views.users import HealthDataPreImportView, RegisterAPIView, RevokeHealthDataConsentView
 
 
 urlpatterns = [
@@ -15,7 +17,7 @@ urlpatterns = [
     path('buscar_rutina_nombre_descripcion/', views.search_wt_name_description),
     path('buscar_rutinas/', views.search_wt),
     path('rutina/<int:id>', views.workout_detail, name='detalles_rutina'),
-    path('register/', views.register, name='register'),
+    # path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page="/inicio"), name='logout'),
     path('editar/', views.edit_user, name='editar_usuario'),
@@ -26,5 +28,10 @@ urlpatterns = [
     path('recomendar/rutinas/<int:id>/', views.recommend_workouts, name='recomendar_rutinas'),
     path('recomendar/ejercicios/<int:id>/', views.recommend_exercises, name='recomendar_ejercicios'),
     path(r'comments/', include('django_comments.urls')),
+    path('import/', GenericImportView.as_view(), name='import'),
+    path('consent/revoke/', RevokeHealthDataConsentView.as_view(), name='revoke-consent'),
+    path('register/', RegisterAPIView.as_view(), name='user-register'),
+    path('preimport/<str:service_key>/', HealthDataPreImportView.as_view(), name='preimport'),
+
 
 ]
