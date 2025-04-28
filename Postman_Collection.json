@@ -1,0 +1,174 @@
+{
+  "info": {
+    "name": "WorkoutRS API",
+    "description": "Colección de Postman para la API de WorkoutRS. Incluye ejemplos de datos y documentación detallada para cada endpoint.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Exercises",
+      "item": [
+        {
+          "name": "List Exercises",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/exercises/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "exercises"]
+            },
+            "description": "Obtiene una lista de todos los ejercicios disponibles."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Exercises",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/exercises/search?name=push&exerciseCategory=strength&muscle=chest&order=name",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "exercises", "search"],
+              "query": [
+                {"key": "name", "value": "push", "description": "Nombre del ejercicio a buscar."},
+                {"key": "exerciseCategory", "value": "strength", "description": "Categoría del ejercicio."},
+                {"key": "muscle", "value": "chest", "description": "Músculo objetivo."},
+                {"key": "order", "value": "name", "description": "Orden de los resultados (por nombre, popularidad, etc.)."}
+              ]
+            },
+            "description": "Busca ejercicios según los parámetros proporcionados."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Exercise",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/exercises/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "exercises", "1"]
+            },
+            "description": "Obtiene los detalles de un ejercicio específico por su ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Workouts",
+      "item": [
+        {
+          "name": "List Workouts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/workouts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "workouts"]
+            },
+            "description": "Obtiene una lista de todas las rutinas disponibles."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Workouts",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/workouts/search/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "workouts", "search"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Full Body\",\n  \"workoutCategory\": \"strength\",\n  \"level\": \"beginner\",\n  \"gender\": \"male\",\n  \"order\": \"name\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Busca rutinas según los parámetros proporcionados."
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Workout Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/workouts/1/detail/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "workouts", "1", "detail"]
+            },
+            "description": "Obtiene los detalles de una rutina específica por su ID, incluyendo ejercicios y recomendaciones."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/register/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"email\": \"testuser@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Registra un nuevo usuario con los datos proporcionados."
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Inicia sesión con las credenciales proporcionadas y devuelve un token de autenticación."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/logout/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "logout"]
+            },
+            "description": "Cierra la sesión del usuario actual eliminando el token de autenticación."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

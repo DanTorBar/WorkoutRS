@@ -2,7 +2,8 @@
 
 from celery import shared_task
 from django.contrib.auth import get_user_model
-from .models import HealthProfile, ActivityLog, HealthDataConsent
+
+from main.models.users import ActivityLog, HealthDataConsent, HealthProfile
 
 User = get_user_model()
 

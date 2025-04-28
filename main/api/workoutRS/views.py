@@ -1,6 +1,18 @@
-from main.models import Exercise, Workout
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.conf import settings
+from main.models.exercise import Exercise, Workout
+from main.search.search import almacenar_datos
+from django.shortcuts import render
 from main.recommendations.recommendations import calcular_similitud
 
+
+def index(request):
+    return render(request, 'index.html',{'STATIC_URL':settings.STATIC_URL})
+
+def populateDatabase(request):
+    mensaje = almacenar_datos()
+    return JsonResponse({'mensaje': mensaje})
 
 # Recomendaciones
 

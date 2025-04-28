@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', "enh@62o8z0+_*=wp)q@vl-dmhst3a!!89uwwu5q9u6i-0ekjyj")
 
 # settings.py (solo para DEBUG/local)
 DEBUG = True
@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     # "django_comments",
     # "django.contrib.sites",
     "main",
+    "corsheaders",
 ]
 
 COMMENTS_APP = 'threadedcomments'
@@ -62,6 +63,7 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -155,3 +157,5 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CORS_ALLOW_ALL_ORIGINS = True

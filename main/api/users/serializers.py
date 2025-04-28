@@ -1,9 +1,10 @@
 from rest_framework import serializers
 from datetime import date
 from main.constants import ACTIVITY_LEVEL_CHOICES
-from .models import Condition, Equipment, Goal, HealthProfile, HealthDataConsent
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+
+from main.models.users import HealthProfile, HealthDataConsent, Goal, Condition, Equipment
 
 class HealthProfileSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
@@ -114,3 +115,15 @@ class RegisterSerializer(serializers.ModelSerializer):
             profile.equipment.set(m2m['equipment'])
 
         return user
+
+class UserSerializer(serializers.ModelSerializer):
+    health_profile = HealthProfileSerializer(source='healthprofile', read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email',
+            'first_name', 'last_name',
+            'health_profile',
+        ]
+        read_only_fields = ['id', 'username', 'email']

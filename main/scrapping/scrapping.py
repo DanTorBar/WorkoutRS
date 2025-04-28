@@ -8,6 +8,8 @@ import requests
 import socket
 from datetime import datetime
 
+from main.models.exercise import Exercise, Muscle, Workout, WorkoutExercise
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "WorkoutRS.settings")
@@ -17,7 +19,6 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-from main.models import Workout, Exercise, Muscle, WorkoutExercise
 from main.LLM_processing.translator_module import translate_text
 
 # lineas para evitar error SSL
