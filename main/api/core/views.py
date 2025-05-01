@@ -1,21 +1,30 @@
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.conf import settings
-from main.models.exercise import Exercise
-from main.models.workout import Workout
+# main/api/core/views.py
+
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+
 from main.search.search import almacenar_datos
-from django.shortcuts import render
 from main.recommendations.recommendations import calcular_similitud
+from main.models.workout import Workout
+from main.models.exercise import Exercise
 
 
-def index(request):
-    return render(request, 'index.html',{'STATIC_URL':settings.STATIC_URL})
+class PopulateDatabaseAPIView(APIView):
+    """
+    POST /api/v1/core/populate/
+    Lanza la carga inicial de datos y devuelve un mensaje.
+    """
+    permission_classes = [AllowAny]
 
-def populateDatabase(request):
-    mensaje = almacenar_datos()
-    return JsonResponse({'mensaje': mensaje})
+    def post(self, request):
+        try:
+            mensaje = almacenar_datos()
+            return Response({'mensaje': mensaje}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# Recomendaciones
 
 def recommend_workouts(id):
     # Obtener todas las rutinas
@@ -38,3 +47,5 @@ def recommend_exercises(id):
     recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
 
     return recomendaciones
+
+

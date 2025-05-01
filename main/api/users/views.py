@@ -1,11 +1,12 @@
-from django.contrib.auth import logout, get_user_model
-from rest_framework import viewsets
-from rest_framework import status, generics
+# main/api/users/views.py
+
+from django.contrib.auth import get_user_model, logout
+from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser
-
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
@@ -18,13 +19,10 @@ from .serializers import (
 
 User = get_user_model()
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
 class RegisterAPIView(generics.CreateAPIView):
     """
-    Registra un nuevo usuario.
+    POST /api/v1/users/register/
     """
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
@@ -32,30 +30,25 @@ class RegisterAPIView(generics.CreateAPIView):
 
 class LoginAPIView(ObtainAuthToken):
     """
-    Login que devuelve token de DRF.
+    POST /api/v1/users/login/  → { username, password }
+    devuelve { token, user_id }
     """
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        try:
-            
-            # Usa el serializer de ObtainAuthToken para validar credenciales
-            serializer = self.serializer_class(data=request.data,
-                                            context={'request': request})
-            serializer.is_valid(raise_exception=True)
-            user = serializer.validated_data['user']
-            print(user)
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key, 'user_id': user.id},
-                            status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'user_id': user.id})
 
 
 class LogoutAPIView(APIView):
     """
-    Logout: borra el token de la sesión actual.
+    POST /api/v1/users/logout/
+    Borra el token y cierra sesión.
     """
     permission_classes = [IsAuthenticated]
 
@@ -69,7 +62,8 @@ class LogoutAPIView(APIView):
 
 class CurrentUserAPIView(generics.RetrieveUpdateAPIView):
     """
-    GET/PUT/PATCH de los datos del usuario autenticado.
+    GET, PUT, PATCH /api/v1/users/me/
+    Devuelve y actualiza datos del usuario autenticado.
     """
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -80,7 +74,8 @@ class CurrentUserAPIView(generics.RetrieveUpdateAPIView):
 
 class HealthDataPreImportAPIView(APIView):
     """
-    Recibe ZIP de exportación y devuelve campos rellenables del perfil.
+    POST /api/v1/users/<service_key>/preimport/
+    Recibe multipart/form-data { file } y devuelve preview de datos.
     """
     parser_classes = [MultiPartParser]
     permission_classes = [AllowAny]
@@ -91,13 +86,13 @@ class HealthDataPreImportAPIView(APIView):
             return Response({'error': 'No file provided'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        cls = IMPORTERS.get(service_key.lower())
-        if not cls:
+        importer_cls = IMPORTERS.get(service_key.lower())
+        if not importer_cls:
             return Response({'error': f'Unknown service {service_key}'},
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            parsed = cls(zip_file).parse()
+            parsed = importer_cls(zip_file).parse()
             return Response(parsed, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)},
@@ -106,7 +101,8 @@ class HealthDataPreImportAPIView(APIView):
 
 class RevokeHealthDataConsentAPIView(APIView):
     """
-    Solicita la revocación de consentimiento y dispara tarea async.
+    POST /api/v1/users/revoke-consent/
+    Lanza la tarea asíncrona de borrado de datos de salud.
     """
     permission_classes = [IsAuthenticated]
 
@@ -121,3 +117,20 @@ class RevokeHealthDataConsentAPIView(APIView):
             {"detail": "Revocation requested; deletion in progress."},
             status=status.HTTP_202_ACCEPTED
         )
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    CRUD de usuarios. Solo accesible para admin (ajusta permisos si lo deseas).
+    Además expone una ruta extra:
+    GET /api/v1/users/me/  → datos del usuario autenticado
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path='me')
+    def me(self, request):
+        """ Alias de CurrentUserAPIView """
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
