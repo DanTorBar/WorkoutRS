@@ -1,6 +1,7 @@
 #encoding:utf-8
 from django import forms
-from main.models import Exercise, Muscle, Workout
+from main.models.exercise import Exercise, Muscle
+from main.models.workout import Workout
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from itertools import chain

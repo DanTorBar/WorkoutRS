@@ -8,7 +8,8 @@ import requests
 import socket
 from datetime import datetime
 
-from main.models.exercise import Exercise, Muscle, Workout, WorkoutExercise
+from main.models.exercise import Exercise, Muscle
+from main.models.workout import Workout, WorkoutExercise
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 

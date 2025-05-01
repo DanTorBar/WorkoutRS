@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from main.models.social import Favourite
-from main.models.exercise import Exercise, Workout
+from main.models.exercise import Exercise
+from main.models.workout import Workout
 
 class FavouriteSerializer(serializers.ModelSerializer):
     """

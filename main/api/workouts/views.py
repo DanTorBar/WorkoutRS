@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from main.api.workoutRS.views import recommend_workouts
 from main.api.workouts.serializers import WorkoutDetailSerializer, WorkoutSerializer
-from main.models.exercise import Workout, WorkoutExercise
+from main.models.workout import Workout, WorkoutExercise
 from main.search.search import buscar_rutinas_por_nombre_descripcion, ru_buscar
 
 class WorkoutViewSet(viewsets.ModelViewSet):

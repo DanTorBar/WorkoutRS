@@ -14,7 +14,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'WorkoutRS.settings')
 import django
 django.setup()
 
-from main.models.exercise import Exercise, Workout
+from main.models.exercise import Exercise
+from main.models.workout import Workout
 from main.models.social import Favourite
 from main.scrapping.scrapping import extraer_rutinas_y_ejercicios
 

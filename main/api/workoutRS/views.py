@@ -1,7 +1,8 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.conf import settings
-from main.models.exercise import Exercise, Workout
+from main.models.exercise import Exercise
+from main.models.workout import Workout
 from main.search.search import almacenar_datos
 from django.shortcuts import render
 from main.recommendations.recommendations import calcular_similitud

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from main.models.exercise import Exercise, Muscle, Workout
+from main.models.exercise import Exercise, Muscle
+from main.models.workout import Workout
 from main.models.social import Favourite
 
 

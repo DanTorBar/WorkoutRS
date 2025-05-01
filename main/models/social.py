@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from main.models.exercise import Exercise, Workout
+from main.models.exercise import Exercise
+from main.models.workout import Workout
 
 
 #Social related models
