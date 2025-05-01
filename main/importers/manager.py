@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError, PermissionDenied
 
-from main.models.users import ActivityLog, HealthProfile
+from main.models.users import HealthProfile
+from main.models.logs import ActivityLog
 
 from .garmin.importer import GarminImporter
 from .fitbit.importer import FitbitImporter
