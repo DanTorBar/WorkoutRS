@@ -29,7 +29,7 @@ class HealthProfile(models.Model):
 
     # --- Entornos y equipamiento disponible ---
     equipment     = models.ManyToManyField('Equipment', blank=True, verbose_name=_("Equipamiento"))
-    environment   = models.CharField(_("Entorno"), max_length=200, blank=True)
+    environment   = models.ManyToManyField('Environment', blank=True, verbose_name=_("Entorno"))
 
     # --- Datos importados (minutos semanales) ---
     imported_neat_min = models.PositiveIntegerField(null=True, blank=True, help_text="Actividad general (NEAT)")
@@ -63,6 +63,10 @@ class Condition(models.Model):
         return self.name
 
 class Equipment(models.Model):
+    name = models.CharField(max_length=100)
+    def __str__(self):
+        return self.name
+class Environment(models.Model):
     name = models.CharField(max_length=100)
     def __str__(self):
         return self.name

@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from main.search.search import almacenar_datos
-from main.recommendations.recommendations import calcular_similitud
 from main.models.workout import Workout
 from main.models.exercise import Exercise
 
@@ -27,25 +26,26 @@ class PopulateDatabaseAPIView(APIView):
 
 
 def recommend_workouts(id):
-    # Obtener todas las rutinas
-    rutinas = list(Workout.objects.all().values(
-        "id", "workoutName", "workoutCategory", "level", "gender", "bodyPart", "description"
-    ))
+    # # Obtener todas las rutinas
+    # rutinas = list(Workout.objects.all().values(
+    #     "id", "workoutName", "workoutCategory", "level", "gender", "bodyPart", "description"
+    # ))
 
-    # Obtener las recomendaciones
-    recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"], 5)
+    # # Obtener las recomendaciones
+    # recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"], 5)
 
-    return recomendaciones
+    # return recomendaciones
+    return True
 
 def recommend_exercises(id):
-    # Obtener todos los ejercicios
-    ejercicios = list(Exercise.objects.all().values(
-        "id", "exerciseName", "exerciseCategory", "priMuscles", "secMuscles"
-    ))
+    # # Obtener todos los ejercicios
+    # ejercicios = list(Exercise.objects.all().values(
+    #     "id", "exerciseName", "exerciseCategory", "priMuscles", "secMuscles"
+    # ))
 
-    # Obtener las recomendaciones
-    recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
+    # # Obtener las recomendaciones
+    # recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
 
-    return recomendaciones
-
+    # return recomendaciones
+    return True
 
