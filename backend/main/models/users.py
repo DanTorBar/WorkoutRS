@@ -29,7 +29,7 @@ class HealthProfile(models.Model):
 
     # --- Entornos y equipamiento disponible ---
     equipment     = models.ManyToManyField('Equipment', blank=True, verbose_name=_("Equipamiento"))
-    environment   = models.CharField(_("Entorno"), max_length=200, blank=True)
+    environment   = models.ManyToManyField('Environment', blank=True, verbose_name=_("Entorno"))
 
     # --- Datos importados (minutos semanales) ---
     imported_neat_min = models.PositiveIntegerField(null=True, blank=True, help_text="Actividad general (NEAT)")
@@ -66,6 +66,10 @@ class Equipment(models.Model):
     name = models.CharField(max_length=100)
     def __str__(self):
         return self.name
+class Environment(models.Model):
+    name = models.CharField(max_length=100)
+    def __str__(self):
+        return self.name
 
 class HealthDataConsent(models.Model):
     """
@@ -91,25 +95,3 @@ class HealthDataConsent(models.Model):
 
 from django.conf import settings
 from django.db import models
-
-class ActivityLog(models.Model):
-    ACTION_CHOICES = [
-        ('IMPORT',  'Importación de datos'),
-        ('DELETE',  'Borrado de datos'),
-    ]
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='activity_logs'
-    )
-    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    detail = models.TextField(blank=True, help_text="Detalles adicionales en JSON o texto.")
-
-    class Meta:
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"{self.user.username} {self.action} at {self.timestamp}"
-

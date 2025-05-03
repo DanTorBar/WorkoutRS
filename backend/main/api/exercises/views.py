@@ -5,8 +5,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from main.models.exercise import Exercise
+from main.models.logs import ViewLog
 from main.search.search import buscar_ejercicios_por_nombre_instrucciones, ej_buscar
-from main.api.workoutRS.views import recommend_exercises
+from main.api.core.views import recommend_exercises
 from .serializers import ExerciseSerializer
 
 
@@ -81,6 +82,13 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         """
         instance = self.get_object()
         ser = self.get_serializer(instance)
+        
+        # registrar la vista
+        ViewLog.objects.create(
+            user = request.user,
+            content_type = ContentType.objects.get_for_model(instance),
+            object_id = instance.pk
+        )
 
         # calcular recomendaciones (lista de dicts con al menos 'idExercise' o 'id')
         recs = recommend_exercises(instance.id)
