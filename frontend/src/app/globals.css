@@ -4,10 +4,10 @@
 
 :root {
   --color-primary: #1E3A8A;
-  --color-secondary: #F59E0B;
-  --color-accent: #84CC16;
+  --color-secondary: #B1FA4B;
+  --color-accent: #B1FA4B;
   --color-bg: #F3F4F6;
-  --color-surface: #FFFFFF;
+  --color-surface: #7a93ac33;
   --color-border: #D1D5DB;
   --color-text: #0F172A;
   --foreground-rgb: 0, 0, 0;
@@ -23,12 +23,12 @@
   }
 }
 
+html, body {
+  min-height: 100vh;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-bg), var(--color-surface));
+}
+
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
 }

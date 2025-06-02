@@ -1,5 +1,5 @@
-from importers.base import BaseImporter
-from .parser import parse_garmin_export
+from main.importers.base import BaseImporter
+from main.importers.garmin.parser import parse_garmin_export
 
 class GarminImporter(BaseImporter):
     def parse(self) -> dict:

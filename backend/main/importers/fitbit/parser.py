@@ -5,7 +5,7 @@ import re
 import zipfile
 from datetime import datetime
 from io import TextIOWrapper
-from importers.utils import parse_date, parse_float, parse_gender
+from main.importers.utils import parse_date, parse_float, parse_gender
 
 
 def parse_fitbit_export(zip_file):

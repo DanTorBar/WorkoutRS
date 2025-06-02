@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    CurrentUsernameAPIView,
     RegisterAPIView,
     LoginAPIView,
     LogoutAPIView,
@@ -22,6 +23,9 @@ urlpatterns = [
 
     # Usuario actual (GET, PUT, PATCH)
     path('me/',       CurrentUserAPIView.as_view(),                  name='current-user'),
+
+    # Nombre de usuario actual (GET)
+    path('myUsername/',       CurrentUsernameAPIView.as_view(),                  name='current-username'),
 
     # Import preview y revocación de consentimiento
     path('<str:service_key>/preimport/', HealthDataPreImportAPIView.as_view(),     name='health-preimport'),

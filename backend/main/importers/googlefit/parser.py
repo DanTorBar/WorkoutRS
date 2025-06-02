@@ -5,7 +5,7 @@ import csv
 import os
 from io import TextIOWrapper
 from datetime import datetime
-from importers.utils import parse_float
+from main.importers.utils import parse_float
 
 def parse_googlefit_export(zip_file):
     data = {

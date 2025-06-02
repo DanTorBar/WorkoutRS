@@ -10,7 +10,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
-from importers.manager import IMPORTERS
+from main.importers.manager import IMPORTERS
 from main.tasks import revoke_health_data
 from .serializers import (
     RegisterSerializer,
@@ -71,6 +71,17 @@ class CurrentUserAPIView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+
+class CurrentUsernameAPIView(generics.RetrieveUpdateAPIView):
+    """
+    GET /api/v1/users/myUsername/
+    Devuelve el nombre de usuario del usuario autenticado.
+    """
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response({"username": self.request.user.username})
 
 class HealthDataPreImportAPIView(APIView):
     """

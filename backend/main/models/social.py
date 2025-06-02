@@ -53,6 +53,7 @@ class Comment(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, null=True, blank=True)
     comment = models.TextField()
     date_added = models.DateTimeField(auto_now_add=True)
+    reported = models.BooleanField(default=False)  # Nuevo flag de reporte
 
     def __str__(self):
         if self.workout:

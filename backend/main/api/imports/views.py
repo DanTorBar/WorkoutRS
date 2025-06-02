@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from importers.manager import import_health_data
+from main.importers.manager import import_health_data
 from .serializers import ImportHealthDataSerializer
 
 class GenericImportAPIView(APIView):

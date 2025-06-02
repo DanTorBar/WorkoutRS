@@ -35,7 +35,7 @@ def recommend_workouts(id):
     # recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"], 5)
 
     # return recomendaciones
-    return True
+    return []
 
 def recommend_exercises(id):
     # # Obtener todos los ejercicios
@@ -47,5 +47,5 @@ def recommend_exercises(id):
     # recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
 
     # return recomendaciones
-    return True
+    return []
 

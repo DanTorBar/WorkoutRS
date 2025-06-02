@@ -5,22 +5,13 @@ import os, shutil, sys
 from whoosh.index import create_in, open_dir
 from whoosh.fields import Schema, TEXT, KEYWORD, ID
 from whoosh.qparser import MultifieldParser, OrGroup
-from django.utils.timezone import now
 from whoosh.analysis import KeywordAnalyzer
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'WorkoutRS.settings')
 
-import django
-django.setup()
-
-from main.models.exercise import Exercise
-from main.models.workout import Workout
-from main.models.social import Favourite
-from main.scrapping.scrapping import extraer_rutinas_y_ejercicios
-
- 
 def almacenar_datos():
+    from main.models.exercise import Exercise
+    from main.models.workout import Workout
+    from main.scrapping.scrapping import extraer_rutinas_y_ejercicios
 
     esquema_ejercicio = Schema(
         idExercise=ID(stored=True, unique=True),
@@ -56,7 +47,7 @@ def almacenar_datos():
     writer_rutina = ix_rutina.writer()
 
     start_time = time.time()
-    extraer_rutinas_y_ejercicios()
+    # extraer_rutinas_y_ejercicios()
     end_time = time.time()
 
     print(f"Tiempo de extracción: {end_time - start_time} segundos")
@@ -72,6 +63,7 @@ def almacenar_datos():
             priMuscles=",".join(m.name for m in ejercicio.priMuscles.all()),
             secMuscles=",".join(m.name for m in ejercicio.secMuscles.all())
         )
+        print(f"Ejercicio añadido: {ejercicio.exerciseName}")
     
     for rutina in Workout.objects.all():
         writer_rutina.add_document(
@@ -81,6 +73,7 @@ def almacenar_datos():
             level=rutina.level,
             gender=rutina.gender
         )
+        print(f"Rutina añadida: {rutina.workoutName}")
     
     writer_ejercicio.commit()
     writer_rutina.commit()
@@ -91,6 +84,9 @@ def almacenar_datos():
 
 
 def buscar_ejercicios_por_nombre_instrucciones(cadena, user, order='name'):
+    from main.models.exercise import Exercise
+    from main.models.social import Favourite
+
     try:
         ix = open_dir("IndexEjercicio")
     except Exception:
@@ -117,6 +113,9 @@ def buscar_ejercicios_por_nombre_instrucciones(cadena, user, order='name'):
 
 
 def ej_buscar(name, cat, muscle, user, order='name'):
+    from main.models.exercise import Exercise
+    from main.models.social import Favourite
+
     try:
         ix = open_dir("IndexEjercicio")
     except Exception as e:
@@ -156,6 +155,10 @@ def ej_buscar(name, cat, muscle, user, order='name'):
 
 
 def ru_buscar(name, cat, level, gender, user, order='name'):
+    from django.utils.timezone import now
+    from main.models.workout import Workout
+    from main.models.social import Favourite
+
     try:
         ix = open_dir("IndexRutina")
     except Exception as e:
@@ -204,21 +207,30 @@ def ru_buscar(name, cat, level, gender, user, order='name'):
 
     
 def buscar_rutinas_por_nombre_descripcion(cadena, user, order='name'):
-    try:
-        ix = open_dir("IndexRutina")
-    except Exception:
-        return []
-    
-    with ix.searcher() as searcher:
-        parser = MultifieldParser(["workoutName"], ix.schema, group=OrGroup)
-        results = searcher.search(parser.parse(f'"{cadena}"'), limit=100)
-        ids = [r['idWorkout'] for r in results]
-        print(cadena)
-        print(results)
-        print(ids)
-        
-        
-    rutinas = list(Workout.objects.filter(id__in=ids).select_related())
+    from django.utils.timezone import now
+    from main.models.workout import Workout
+    from main.models.social import Favourite
+
+    if cadena and cadena.strip() != "":
+        try:
+            ix = open_dir("IndexRutina")
+        except Exception:
+            return []
+        with ix.searcher() as searcher:
+            parser = MultifieldParser(["workoutName"], ix.schema, group=OrGroup)
+            # Permitir búsqueda por palabras parciales (contenga los términos)
+            # Ejemplo: si cadena = "fuerza total" => busca rutinas que contengan ambas palabras
+            palabras = [w for w in cadena.strip().split() if w]
+            if palabras:
+                query = " AND ".join([f'workoutName:*{w}*' for w in palabras])
+            else:
+                query = f'workoutName:*{cadena}*'
+            results = searcher.search(parser.parse(query), limit=100)
+            ids = [r['idWorkout'] for r in results]
+        rutinas = list(Workout.objects.filter(id__in=ids).select_related())
+    else:
+        rutinas = list(Workout.objects.all().select_related())
+        ids = [r.id for r in rutinas]
     
     if order == 'name':
         rutinas = sorted(rutinas, key=lambda x: x.workoutName.lower())
@@ -240,6 +252,13 @@ def buscar_rutinas_por_nombre_descripcion(cadena, user, order='name'):
     return rutinas
 
 if __name__ == "__main__":
-    # ru_buscar(name="Single", cat="Thighs", level="aaa", bodyPart="bbb", gender="male")
-    ej_buscar(name="", cat="Running", muscle="")
-    # almacenar_datos()
+    # Calcula la ruta absoluta a la carpeta backend
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # .../backend/main/search
+    BACKEND_DIR = os.path.dirname(os.path.dirname(BASE_DIR))  # .../backend
+
+    if BACKEND_DIR not in sys.path:
+        sys.path.insert(0, BACKEND_DIR)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'WorkoutRS.settings')
+    import django
+    django.setup()
+    almacenar_datos()

@@ -2,7 +2,7 @@ import zipfile
 import unicodedata
 from lxml import etree
 from datetime import datetime, timedelta
-from importers.utils import parse_date, parse_float, parse_gender
+from main.importers.utils import parse_date, parse_float, parse_gender
 
 WORKOUT_INTENSITY = {
     "HKWorkoutActivityTypeWalking":        ("light", 3.0),
