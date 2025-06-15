@@ -13,24 +13,24 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r'', UserViewSet, basename='user')
+router.register(r"", UserViewSet, basename="user")
 
 urlpatterns = [
     # Autenticación y registro
-    path('register/', RegisterAPIView.as_view(),                     name='user-register'),
-    path('login/',    LoginAPIView.as_view(),                        name='user-login'),
-    path('logout/',   LogoutAPIView.as_view(),                       name='user-logout'),
+    path("register/", RegisterAPIView.as_view(), name="user-register"),
+    path("login/", LoginAPIView.as_view(), name="user-login"),
+    path("logout/", LogoutAPIView.as_view(), name="user-logout"),
 
     # Usuario actual (GET, PUT, PATCH)
-    path('me/',       CurrentUserAPIView.as_view(),                  name='current-user'),
+    path("me/", CurrentUserAPIView.as_view(), name="current-user"),
 
     # Nombre de usuario actual (GET)
-    path('myUsername/',       CurrentUsernameAPIView.as_view(),                  name='current-username'),
+    path("myUsername/", CurrentUsernameAPIView.as_view(), name="current-username"),
 
     # Import preview y revocación de consentimiento
-    path('<str:service_key>/preimport/', HealthDataPreImportAPIView.as_view(),     name='health-preimport'),
-    path('revoke-consent/',            RevokeHealthDataConsentAPIView.as_view(),   name='revoke-consent'),
+    path("<str:service_key>/preimport/", HealthDataPreImportAPIView.as_view(), name="health-preimport"),
+    path("revoke-consent/", RevokeHealthDataConsentAPIView.as_view(), name="revoke-consent"),
 
-    # CRUD de usuarios (sólo admin o según permisos de UserViewSet)
-    path('', include(router.urls)),
+    # CRUD de usuarios
+    path("", include(router.urls)),
 ]

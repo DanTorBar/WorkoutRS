@@ -3,6 +3,7 @@
 
 import React, { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import AccessDeniedModal from "@/components/AccessDeniedModal";
 
 export default function LikeButton({
   initialCount,
@@ -18,6 +19,7 @@ export default function LikeButton({
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleLike = async () => {
     if (loading) return;
@@ -26,7 +28,8 @@ export default function LikeButton({
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
-        console.error("Token not found");
+        console.warn("Token not found, mostrando modal de acceso");
+        setIsModalOpen(true);
         setLoading(false);
         return;
       }
@@ -39,22 +42,36 @@ export default function LikeButton({
 
       if (!liked) {
         // Dar like
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}social/favourites/`, {
-          method: "POST",
-          headers,
-          body,
-        });
-        setLiked(true);
-        setCount(count + 1);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}social/favourites/`,
+          {
+            method: "POST",
+            headers,
+            body,
+          }
+        );
+        if (!res.ok) {
+          console.error("Error al dar like:", res.statusText);
+        } else {
+          setLiked(true);
+          setCount((c) => c + 1);
+        }
       } else {
         // Quitar like
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}social/favourites/delete-by-type/`, {
-          method: "DELETE",
-          headers,
-          body,
-        });
-        setLiked(false);
-        setCount(count - 1);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}social/favourites/delete-by-type/`,
+          {
+            method: "DELETE",
+            headers,
+            body,
+          }
+        );
+        if (!res.ok) {
+          console.error("Error al quitar like:", res.statusText);
+        } else {
+          setLiked(false);
+          setCount((c) => c - 1);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -64,17 +81,23 @@ export default function LikeButton({
   };
 
   return (
-    <button
-      onClick={toggleLike}
-      disabled={loading}
-      className="inline-flex items-center space-x-2 text-text hover:text-red-600 transition px-3 py-1 rounded-full font-medium bg-red-200"
-    >
-      <span>{count}</span>
-      {liked ? (
-        <FaHeart className="h-5 w-5 text-red-600" />
-      ) : (
-        <FaRegHeart className="h-5 w-5" />
+    <>
+      <button
+        onClick={toggleLike}
+        disabled={loading}
+        className="inline-flex items-center space-x-2 text-text hover:text-red-600 transition px-3 py-1 rounded-full font-medium bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span>{count}</span>
+        {liked ? (
+          <FaHeart className="h-5 w-5 text-red-600" />
+        ) : (
+          <FaRegHeart className="h-5 w-5" />
+        )}
+      </button>
+
+      {isModalOpen && (
+        <AccessDeniedModal onClose={() => setIsModalOpen(false)} />
       )}
-    </button>
+    </>
   );
 }

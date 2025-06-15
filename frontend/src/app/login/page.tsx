@@ -49,6 +49,7 @@ export default function LoginPage() {
       }
       const data = await res.json();
       localStorage.setItem("authToken", data.token);
+      window.dispatchEvent(new Event("login"));
       const callbackUrl = searchParams.get("callbackUrl");
       if (callbackUrl) {
         router.push(callbackUrl);

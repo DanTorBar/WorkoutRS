@@ -92,7 +92,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold mb-4">
             Lleva tu entrenamiento al siguiente nivel
           </h2>
-          <p className="mb-6 text-text">
+          <p className="mb-6 text-[#e7e7e7]">
             Únete a la comunidad de Workout-RS y optimiza tus objetivos de
             fitness con tecnología de vanguardia.
           </p>

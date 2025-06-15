@@ -29,9 +29,7 @@ if not os.environ.get("PYTHONHTTPSVERIFY", "") and getattr(
     ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def store_exercise(
-    id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions
-):
+def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, video, instructions):
     exerciseName_es = translate_text(exerciseName)
     exerciseCategory_es = translate_text(exerciseCategory)
     instructions_es = translate_text(instructions)
@@ -66,9 +64,7 @@ def store_exercise(
     #     print(f"Ejercicio '{exerciseName}' ya existía.")
 
 
-def store_workout(
-    workoutName, workoutCategory, level, gender, bodyPart, description, days
-):
+def store_workout(workoutName, workoutCategory, level, gender, bodyPart, description, days):
     workoutName_es = translate_text(workoutName)
     workoutCategory_es = translate_text(workoutCategory)
     level_es = translate_text(level)
@@ -147,15 +143,18 @@ def extraer_rutinas_y_ejercicios():
     try:
         # Realizar la solicitud POST
         response = requests.post(url, headers=headers, data=body, timeout=50)
-        # response.raise_for_status()  # Esto lanzará una excepción si la solicitud no fue exitosa
 
-        # PRUEBA
-        with open("main/scrapping/data/request.html", "r") as file:
-            respuesta = file.read()
-        
-        # Comprobar si la solicitud fue exitosa
-        if response.status_code == 200 or respuesta:
-            s = BeautifulSoup(respuesta, "lxml")
+        # Usar el HTML de la respuesta si la solicitud fue exitosa, si no, usar el HTML en bruto
+        if response.status_code == 200:
+            html_content = response.text
+        else:
+            with open("main/scrapping/data/request.html", "r") as file:
+                respuesta = file.read()
+            html_content = respuesta
+
+        # Comprobar si hay contenido para procesar
+        if html_content:
+            s = BeautifulSoup(html_content, "lxml")
             l = s.find("table", class_="MainLeftContentColWidth").find_all_next(
                 "td", attrs={"valign": "bottom"}
             )
@@ -313,7 +312,9 @@ def extraer_rutinas_y_ejercicios():
                                     req = urllib.request.Request(
                                         "https://www.fitclick.com" + link,
                                         headers={
-                                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.140 Safari/537.36"
+                                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" +
+                                            "AppleWebKit/537.36 (KHTML, like Gecko)" + 
+                                            "Chrome/131.0.6778.140 Safari/537.36"
                                         },
                                     )
 

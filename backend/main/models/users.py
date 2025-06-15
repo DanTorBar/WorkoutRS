@@ -18,7 +18,7 @@ class HealthProfile(models.Model):
         ('femenino', 'FEMENINO'),
         ('otro', 'OTRO'),
         ('desconocido', 'DESCONOCIDO'),
-    ], default='unknown')
+    ], default='desconocido')
 
     height_cm = models.PositiveSmallIntegerField(null=True, blank=True)
     weight_kg = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)

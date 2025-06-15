@@ -24,7 +24,7 @@ export default function AccessDeniedPage() {
           href={`/login?callbackUrl=${encodeURIComponent(currentPath)}`}
           className="w-full block bg-primary text-surface py-2 rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 text-center"
         >
-          Ir al incio de sesión
+          Ir al inicio de sesión
         </Link>
       </div>
     </main>

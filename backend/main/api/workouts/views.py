@@ -4,13 +4,14 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from datetime import timedelta
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.pagination import PageNumberPagination
 
 from main.models.workout import Workout, WorkoutExercise
+from main.models.exercise import Muscle
 from main.models.logs import ViewLog
 from main.models.social import Favourite
 from main.search.search import buscar_rutinas_por_nombre_descripcion, ru_buscar
@@ -27,8 +28,7 @@ class WorkoutPagination(PageNumberPagination):
 class WorkoutViewSet(viewsets.ModelViewSet):
     """
     - list, create, retrieve, update, destroy de Workout
-    - POST /api/v1/workouts/search/             → búsqueda avanzada
-    - POST /api/v1/workouts/term-search/        → búsqueda por término en nombre/descr.
+    - GET /api/v1/workouts/?page=X&page_size=12&term=Y&level=Z&order=name             → búsqueda avanzada (list)
     - retrieve() incluye días y recomendaciones
     """
     queryset = Workout.objects.all()
@@ -36,36 +36,9 @@ class WorkoutViewSet(viewsets.ModelViewSet):
     pagination_class = WorkoutPagination
 
     def get_permissions(self):
-        if self.action in ('list', 'search', 'term_search'):
+        if self.action == 'list':
             return [AllowAny()]
         return [IsAuthenticated()]
-
-    @action(detail=False, methods=['post'], url_path='search')
-    def search(self, request):
-        name = request.data.get('name', '')
-        cat  = request.data.get('workoutCategory', '')
-        level= request.data.get('level', '')
-        gender = request.data.get('gender', '')
-        order  = request.data.get('order', 'name')
-
-        rutinas = ru_buscar(
-            name=name,
-            cat= '' if cat in ('Seleccionar', None) else cat,
-            level= '' if level in ('N/A', None) else level,
-            gender='' if gender in ('N/A', None) else gender,
-            user=request.user,
-            order=order
-        )
-        serializer = WorkoutSerializer(rutinas, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['post'], url_path='term-search')
-    def term_search(self, request):
-        term  = request.data.get('term', '')
-        order = request.data.get('order', 'name')
-        rutinas = buscar_rutinas_por_nombre_descripcion(term, user=request.user, order=order)
-        serializer = WorkoutSerializer(rutinas, many=True)
-        return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
         name = request.query_params.get('term', '').strip()
@@ -82,7 +55,6 @@ class WorkoutViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    # NOTA: En el frontend, para búsquedas, solo permite los valores de orden soportados por buscar_rutinas_por_nombre_descripcion: 'name', 'popularity', 'likes_count', 'creationDate'.
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -127,3 +99,15 @@ class WorkoutViewSet(viewsets.ModelViewSet):
             'days': days,
             'recommended': recs
         }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def workout_options(request):
+    categories = set(Workout.objects.values_list('workoutCategory', flat=True).distinct())
+    levels = set(Workout.objects.values_list('level', flat=True).distinct())
+    genders = set(Workout.objects.values_list('gender', flat=True).distinct())
+    return Response({
+        'categories': sorted([c for c in categories if c]),
+        'levels': sorted([l for l in levels if l]),
+        'genders': sorted([g for g in genders if g]),
+    })

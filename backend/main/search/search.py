@@ -112,7 +112,7 @@ def buscar_ejercicios_por_nombre_instrucciones(cadena, user, order='name'):
     return ejercicios
 
 
-def ej_buscar(name, cat, muscle, user, order='name'):
+def ej_buscar(name, cat, muscle, user, equipment, order='name'):
     from main.models.exercise import Exercise
     from main.models.social import Favourite
 
@@ -123,7 +123,7 @@ def ej_buscar(name, cat, muscle, user, order='name'):
         return []
 
     with ix.searcher() as searcher:
-        fields = ["exerciseName", "exerciseCategory", "priMuscles", "secMuscles"]
+        fields = ["exerciseName", "exerciseCategory", "equipment", "priMuscles", "secMuscles"]
         parser = MultifieldParser(fields, schema=ix.schema, group=OrGroup)
 
         query_parts = []
@@ -131,8 +131,11 @@ def ej_buscar(name, cat, muscle, user, order='name'):
             query_parts.append(f'(exerciseName:"{name}" OR exerciseName:*"{name}"*)')
         if cat:
             query_parts.append(f'(exerciseCategory:"{cat}" OR exerciseCategory:*"{cat}"*)')
+        if equipment:
+            query_parts.append(f'(equipment:"{equipment}" OR equipment:*"{equipment}"*)')
         if muscle:
-            query_parts.append(f'((priMuscles:*"{muscle}"* OR secMuscles:"{muscle}") OR (priMuscles:"{muscle}" OR secMuscles:"{muscle}"))')
+            query_parts.append(f'((priMuscles:*"{muscle}"* OR secMuscles:"{muscle}") OR ' +  
+                               f'(priMuscles:"{muscle}" OR secMuscles:"{muscle}"))')
 
         query_string = " AND ".join(query_parts) if query_parts else "*:*"
         query = parser.parse(query_string)
@@ -147,7 +150,8 @@ def ej_buscar(name, cat, muscle, user, order='name'):
         ejercicios = sorted(ejercicios, key=lambda x: x.likes_count, reverse=True)
     
     if user and user.is_authenticated:
-        favoritos = set(Favourite.objects.filter(user=user, exercise_id__in=ids).values_list('exercise_id', flat=True))
+        favoritos = set(Favourite.objects.filter(user=user, exercise_id__in=ids).
+                        values_list('exercise_id', flat=True))
         for ejercicio in ejercicios:
             ejercicio.is_favourite = ejercicio.id in favoritos
 

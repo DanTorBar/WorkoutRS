@@ -13,16 +13,11 @@ class HealthProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = HealthProfile
         fields = [
-            'first_name', 'last_name', 'date_of_birth', 'gender',
-            'height_cm', 'weight_kg',
-            'age', 'bmi',  # ← añadidos aquí
-            'goals', 'medical_conditions',
-            'environments', 'available_equipment',
-            'imported_neat_min', 'imported_cardio_mod_min',
-            'imported_cardio_vig_min', 'imported_strength_min',
-            'neat_level', 'cardio_mod_level',
-            'cardio_vig_level', 'strength_level',
-            'created_at', 'updated_at'
+            'first_name', 'last_name', 'date_of_birth', 'gender', 'height_cm',
+            'weight_kg', 'age', 'bmi', 'goals', 'medical_conditions', 'environments',
+            'available_equipment', 'imported_neat_min', 'imported_cardio_mod_min',
+            'imported_cardio_vig_min', 'imported_strength_min', 'neat_level', 'cardio_mod_level',
+            'cardio_vig_level', 'strength_level', 'created_at', 'updated_at'
         ]
 
     def get_age(self, obj):
@@ -124,9 +119,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email',
             'first_name', 'last_name',
-            'health_profile',
+            'health_profile', 'is_staff'
         ]
-        read_only_fields = ['id', 'username', 'email']
+        read_only_fields = ['id', 'username', 'email', 'is_staff']
 
 class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:

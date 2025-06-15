@@ -11,6 +11,10 @@ import {
   PopoverButton,
   PopoverGroup,
   PopoverPanel,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
 } from "@headlessui/react";
 import {
   ArrowPathIcon,
@@ -21,13 +25,10 @@ import {
   SquaresPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import {
-  ChevronDownIcon,
-  PhoneIcon,
-  PlayCircleIcon,
-} from "@heroicons/react/20/solid";
+import { ChevronDownIcon, PhoneIcon, PlayCircleIcon } from "@heroicons/react/20/solid";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const products = [
   {
@@ -67,54 +68,83 @@ const callsToAction = [
 ];
 
 const Skeleton = ({ width, height }: { width: string; height: string }) => (
-  <div
-    style={{ width, height }}
-    className="bg-gray-200 animate-pulse rounded"
-  ></div>
+  <div style={{ width, height }} className="bg-gray-200 animate-pulse rounded"></div>
 );
 
-export default function Example() {
+export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState("");
+  const [user, setUser] = useState<string | null>(null);
+  const [admin, setAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // Obtener datos de usuario si hay token
+  const fetchUser = async () => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}users/me/`, {
+          method: "GET",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.username) {
+            setUser(data.username);
+            setAdmin(Boolean(data.is_staff)); // o la propiedad que indique admin
+            localStorage.setItem("username", data.username);
+          } else {
+            setUser(null);
+            setAdmin(false);
+            localStorage.removeItem("username");
+            localStorage.removeItem("authToken");
+          }
+        } else {
+          setUser(null);
+          setAdmin(false);
+          localStorage.removeItem("username");
+          localStorage.removeItem("authToken");
+        }
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        setUser(null);
+        setAdmin(false);
+      }
+    } else {
+      setUser(null);
+      setAdmin(false);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const cachedUsername = localStorage.getItem("username");
+    fetchUser();
 
-    if (cachedUsername) {
-      setIsAuthenticated(true);
-      setUsername(cachedUsername);
-      setLoading(false);
-    } else if (token) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}users/me/`, {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-      })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error("Failed to fetch user data");
-        })
-        .then((data) => {
-          localStorage.setItem("username", data.username);
-          setIsAuthenticated(true);
-          setUsername(data.username);
-          setLoading(false);
-        })
-        .catch(() => {
-          setIsAuthenticated(false);
-          setUsername("");
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
+    const onLogin = () => {
+      setLoading(true);
+      fetchUser();
+    };
+    const onLogout = () => {
+      setUser(null);
+      setAdmin(false);
+      // opcional: setLoading(false)
+    };
+    window.addEventListener("login", onLogin);
+    window.addEventListener("logout", onLogout);
+    return () => {
+      window.removeEventListener("login", onLogin);
+      window.removeEventListener("logout", onLogout);
+    };
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("username");
+    window.dispatchEvent(new Event("logout"));
+    router.push("/");
+  };
 
   return (
     <header className="bg-white text-white border-b-2 border-border">
@@ -215,20 +245,69 @@ export default function Example() {
           {loading ? (
             <div className="flex items-center space-x-4">
               <Skeleton width="100px" height="20px" />
-              <Skeleton width="60px" height="20px" />
             </div>
-          ) : isAuthenticated ? (
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-semibold text-primary">
-                {username}
-              </span>
-              <Link
-                href="/perfil"
-                className="text-sm font-semibold text-gray-900"
+          ) : user ? (
+            // Dropdown con Menu de Headless UI
+            <Menu as="div" className="relative inline-block text-left">
+              <MenuButton
+                className={`inline-flex items-center space-x-1 text-sm font-semibold focus:outline-none ${
+                  admin
+                    ? "text-red-600 hover:text-red-800"
+                    : "text-primary hover:text-secondary"
+                }`}
               >
-                Perfil
-              </Link>
-            </div>
+                <span>
+                  {user}
+                  {admin ? " (Admin)" : ""}
+                </span>
+                <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </MenuButton>
+              <MenuItems className="absolute right-0 mt-2 w-48 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
+                <div className="py-1">
+                  <MenuItem>
+                    {({ active }) => (
+                      <Link
+                        href="/perfil"
+                        className={`${
+                          active ? "bg-gray-100" : ""
+                        } block px-4 py-2 text-sm text-gray-700`}
+                      >
+                        Perfil
+                      </Link>
+                    )}
+                  </MenuItem>
+                  {admin && (
+                    <MenuItem>
+                      {({ active }) => (
+                        <button
+                          onClick={() => {
+                            // Lógica para poblar base de datos; aquí un ejemplo de redirección o llamada
+                            router.push("/admin/populate");
+                          }}
+                          className={`${
+                            active ? "bg-gray-100" : ""
+                          } block w-full text-left px-4 py-2 text-sm text-gray-700`}
+                        >
+                          Poblar Base de Datos
+                        </button>
+                      )}
+                    </MenuItem>
+                  )}
+                  <MenuItem>
+                    {({ active }) => (
+                      <button
+                        onClick={handleLogout}
+                        className={`${
+                          active ? "bg-gray-100" : ""
+                        } block w-full text-left px-4 py-2 text-sm text-gray-700`}
+                      >
+                        Cerrar sesión
+                      </button>
+                    )}
+                  </MenuItem>
+                </div>
+              </MenuItems>
+            </Menu>
           ) : (
             <Link href="/login" className="text-sm font-semibold text-gray-900">
               Iniciar sesión
@@ -244,14 +323,14 @@ export default function Example() {
         <div className="fixed inset-0 z-10" />
         <DialogPanel className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
           <div className="flex items-center justify-between">
-            <Link href="#" className="-m-1.5 p-1.5">
-              <span className="sr-only">Your Company</span>
+            <Link href="/" className="-m-1.5 p-1.5">
+              <span className="sr-only">Workout-RS</span>
               <Image
-                alt=""
-                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
+                alt="Workout-RS Logo"
+                src="/logo.png"
                 className="h-8 w-auto"
-                width={32}
-                height={32}
+                width={549}
+                height={275}
               />
             </Link>
             <button
@@ -307,12 +386,48 @@ export default function Example() {
                 </Link>
               </div>
               <div className="py-6">
-                <Link
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
-                  Log in
-                </Link>
+                {loading ? (
+                  <Skeleton width="80px" height="20px" />
+                ) : user ? (
+                  // Menú móvil: Perfil / Poblar / Cerrar sesión
+                  <div className="space-y-1">
+                    <Link
+                      href="/perfil"
+                      className="block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Perfil
+                    </Link>
+                    {admin && (
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          router.push("/admin/populate");
+                        }}
+                        className="w-full text-left rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                      >
+                        Poblar Base de Datos
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full text-left rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Iniciar sesión
+                  </Link>
+                )}
               </div>
             </div>
           </div>
