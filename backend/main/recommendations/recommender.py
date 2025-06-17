@@ -1,14 +1,3 @@
-# recommender_extended.py
-# Sistema híbrido simplificado extendido para Workout-RS:
-#   - ALS + Content-Based + Penalizaciones avanzadas + Cold-Start + Caché
-# Extiende penalizaciones usando:
-#   - HealthProfile.conditions (condiciones médicas)
-#   - HealthProfile.equipment (equipamiento disponible)
-#   - HealthProfile.environment (entorno preferido/disponible)
-#   - imported_*_min (actividad reportada)
-#   - neat_level, cardio_mod_level, cardio_vig_level, strength_level
-# REVISAR cuidadosamente los mapeos de condiciones a categorías de ítem.
-
 import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -28,6 +17,7 @@ from main.models.social import Favourite, Comment
 from main.models.users import HealthProfile
 from main.models.logs import ViewLog
 from main.models.recommendations import RecommendCache
+from main.recommendations.recommendation_cache import get_cached_recommendations, CACHE_TTL_HOURS
 
 import pandas as pd
 import numpy as np
@@ -61,19 +51,54 @@ STRENGTH_CATS = [
 # Mapeo de condiciones a categorías de ejercicio/rutina a penalizar
 # AJUSTAR: completa con los nombres de Condition.name que uses y las categorías de ítems que conviene penalizar.
 CONDITION_PENALTIES = {
-    # Ejemplo: hipertensión → penalizar cardio muy intenso
+    # Hipertensión: evitar cardio muy intenso y ejercicios de alta presión arterial
     'hipertensión': {
-        'exercise_cats': ['Cardio,Correr','Cardio,Ejercicios/Pliamétricos'],
-        'workout_cats': [],  # si aplica
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos', 'Cardio,Ciclismo'],
+        'workout_cats': ['Entrenamiento en circuito'],
         'delta': 0.3
     },
+    # Asma: evitar cardio de alta intensidad y ambientes polvorientos
+    'asma': {
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos'],
+        'workout_cats': ['Entrenamiento en circuito'],
+        'delta': 0.2
+    },
+    # Dolor de rodilla: evitar saltos y ejercicios de impacto
     'dolor de rodilla': {
-        'exercise_cats': ['Cardio,Correr','Cardio,Ejercicios/Pliométricos'],
-        'workout_cats': ['Entrenamiento en circuito'],  # ejemplo
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos', 'Cardio,Aerobic/Baile'],
+        'workout_cats': ['Entrenamiento en circuito'],
         'delta': 0.3
     },
-    # Añade más condiciones según tu dominio...
-    # 'condición X': {'exercise_cats': [...], 'workout_cats': [...], 'delta': ...},
+    # Osteoporosis: evitar ejercicios de impacto y saltos
+    'osteoporosis': {
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos', 'Cardio,Deporte/Entrenamiento'],
+        'workout_cats': ['Entrenamiento en circuito'],
+        'delta': 0.3
+    },
+    # Embarazo: evitar ejercicios de impacto y rutinas de alta intensidad
+    'embarazo': {
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos', 'Cardio,Aerobic/Baile'],
+        'workout_cats': ['Entrenamiento en circuito', 'Solo entrenamiento de fuerza'],
+        'delta': 0.4
+    },
+    # Enfermedad cardíaca: evitar cardio intenso y rutinas de fuerza máxima
+    'enfermedad cardíaca': {
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos', 'Cardio,Ciclismo'],
+        'workout_cats': ['Entrenamiento en circuito', 'Solo entrenamiento de fuerza'],
+        'delta': 0.4
+    },
+    # Artritis: evitar ejercicios de impacto y movimientos repetitivos de articulaciones afectadas
+    'artritis': {
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos'],
+        'workout_cats': ['Entrenamiento en circuito'],
+        'delta': 0.2
+    },
+    # Sobrepeso: evitar ejercicios de alto impacto al inicio
+    'sobrepeso': {
+        'exercise_cats': ['Cardio,Correr', 'Cardio,Ejercicios/Pliométricos'],
+        'workout_cats': [],
+        'delta': 0.2
+    },
 }
 
 # Penalización por falta de equipamiento:
@@ -94,6 +119,24 @@ EXCESS_ACTIVITY_PENALTY = {
         'delta': 0.1
     },
     # Puedes añadir para strength: aunque no hay imported_strength_min, se podría usar strength_level o neat_level
+}
+
+# Penalizaciones adicionales por edad, nivel de fuerza/cardiovascular, IMC, etc.
+PENALTIES = {
+    'age_hi': {
+        'threshold': 65,
+        'cats': CARDIO_CATS,
+        'delta': 0.2
+    },
+    'cardio_zero': {
+        'cardio_vig_level': 0,
+        'cats': CARDIO_CATS,
+        'delta': 0.2
+    },
+    'bmi_obese': {
+        'cats': CARDIO_CATS,
+        'delta': 0.1
+    }
 }
 
 # --------------------------------------------------
@@ -167,7 +210,7 @@ def penalize(profile: HealthProfile, item, score: float, is_ex: bool):
     item: instancia de Exercise o Workout según is_ex.
     """
     sc = score
-    user_goals = {g.name for g in profile.goals.all()}
+    user_goals = set(profile.get_goals_list())
 
     # --- Edad avanzada ---
     if profile.date_of_birth:
@@ -198,19 +241,10 @@ def penalize(profile: HealthProfile, item, score: float, is_ex: bool):
                 if cat in cfg['cats'] and not (user_goals & cardio_weight_loss_goals):
                     sc -= cfg['delta']
 
-    # --- Nivel cero fuerza en rutinas ---
-    if (not is_ex) and getattr(profile, 'strength_level', None) is not None:
-        cfg = PENALTIES.get('strength_zero')
-        if cfg and profile.strength_level == cfg['strength_zero']['strength_level']:
-            cat = item.workoutCategory
-            strength_goals = {'Aumentar la fuerza', 'Ganancia muscular', 'Preparación deportiva'}
-            if cat in cfg['cats'] and not (user_goals & strength_goals):
-                sc -= cfg['delta']
-
     # --- Condiciones médicas específicas ---
     # Por cada condition en profile.conditions, si existe en CONDITION_PENALTIES:
-    for cond in profile.conditions.all():
-        name = cond.name.lower()
+    for name in profile.get_conditions_list():
+        name = name.lower()
         if name in CONDITION_PENALTIES:
             cfg = CONDITION_PENALTIES[name]
             delta = cfg.get('delta', 0)
@@ -226,26 +260,19 @@ def penalize(profile: HealthProfile, item, score: float, is_ex: bool):
     # --- Equipamiento disponible ---
     # Si es ejercicio y requiere equipamiento que el usuario no tiene, penalizar
     if is_ex:
-        # profile.equipment es M2M de Equipment con campo .name
-        user_equip = {e.name.lower() for e in profile.equipment.all()}
-        # item.equipment es texto con comas
+        user_equip = {e.lower() for e in profile.get_equipment_list()}
         reqs = []
         if getattr(item, 'equipment', None):
             reqs = [s.strip().lower() for s in item.equipment.split(',') if s.strip()]
-        # Si hay requisitos no vacíos y el usuario no dispone de alguno, penalizar
         if reqs:
             missing = [r for r in reqs if r not in user_equip]
             if missing:
                 sc -= EQUIPMENT_PENALTY_DELTA
 
     # --- Entorno disponible ---
-    # Si Workout tuviera atributo environment o similar, se podría:
     if not is_ex:
-        # Supongamos Workout tiene M2M environment o campo environment con nombre:
         if hasattr(item, 'environment'):
-            # Ejemplo: item.environment es M2M a Environment con .name
-            user_env = {e.name.lower() for e in profile.environment.all()}
-            # Recoger entornos del workout:
+            user_env = {e.lower() for e in profile.get_environment_list()}
             try:
                 wk_envs = {e.name.lower() for e in item.environment.all()}
             except:
@@ -552,10 +579,14 @@ def get_user_interactions_weights_wk(user_id):
 # Recomendaciones
 # --------------------------------------------------
 def recommend_exercises(user_id, top_n=10):
+    cached = get_cached_recommendations(user_id, 'exercise', top_n)
+    if cached is not None:
+        return cached
     try:
         df_ex
     except NameError:
-        raise RuntimeError("Debe llamar a init_recommender() antes de recomendar.")
+        from main.recommendations.recommender import init_recommender
+        init_recommender()
     # Si usuario no en mapping de ALS-interacciones, devolvemos populares
     if user_id not in user_mapping_ex:
         top = df_ex.sort_values('likes_count', ascending=False).head(top_n)
@@ -627,10 +658,14 @@ def recommend_exercises(user_id, top_n=10):
     return pd.DataFrame({'id': ids, 'exerciseName': names})
 
 def recommend_workouts(user_id, top_n=10):
+    cached = get_cached_recommendations(user_id, 'workout', top_n)
+    if cached is not None:
+        return cached
     try:
         df_wk
     except NameError:
-        raise RuntimeError("Debe llamar a init_recommender() antes de recomendar.")
+        from main.recommendations.recommender import init_recommender
+        init_recommender()
     if user_id not in user_mapping_wk:
         top = df_wk.sort_values('likes_count', ascending=False).head(top_n)
         return top[['id','workoutName']]
@@ -699,13 +734,6 @@ def recommend_workouts(user_id, top_n=10):
         )
     return pd.DataFrame({'id': ids, 'workoutName': names})
 
-# --------------------------------------------------
-# 4 puntos clave a revisar/AJUSTAR:
-# 1) CONDITION_PENALTIES: adapta los nombres de condiciones (cond.name) y categorías de exerciseCategory/workoutCategory que quieres penalizar.
-# 2) Equipamiento: comprueba que Exercise.equipment lista correctamente los requisitos y que HealthProfile.equipment.name coincide.
-# 3) Entorno: si Workout no tiene campo environment o similar, quita o adapta esa parte.
-# 4) Imported minutes: los umbrales en EXCESS_ACTIVITY_PENALTY son ejemplos. Ajústalos según tu lógica de dominio.
-#
 # Uso:
 #   from main.recommendations.recommender_extended import init_recommender, recommend_exercises, recommend_workouts
 #   init_recommender()

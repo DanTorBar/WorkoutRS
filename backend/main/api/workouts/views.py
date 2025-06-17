@@ -17,7 +17,7 @@ from main.models.social import Favourite
 from main.search.search import buscar_rutinas_por_nombre_descripcion, ru_buscar
 from main.api.workouts.serializers import WorkoutSerializer, WorkoutDetailSerializer
 
-from main.api.core.views import recommend_workouts  # ajusta import si cambió de ruta
+from main.api.core.views import recommend_workouts
 
 
 class WorkoutPagination(PageNumberPagination):
@@ -88,16 +88,9 @@ class WorkoutViewSet(viewsets.ModelViewSet):
                 'exercises': [we.exercise.exerciseName for we in exercises]
             })
 
-        # Recommendations
-        recs = recommend_workouts(workout.id)
-        # añadimos idWorkout
-        for r in recs:
-            r['idWorkout'] = r.get('id') or r.get('idWorkout')
-
         return Response({
             'workout': basic,
-            'days': days,
-            'recommended': recs
+            'days': days
         }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])

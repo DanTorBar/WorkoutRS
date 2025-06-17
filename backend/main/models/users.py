@@ -5,6 +5,63 @@ from django.utils.translation import gettext_lazy as _
 
 from main.constants import ACTIVITY_LEVEL_CHOICES
 
+GOAL_CHOICES = [
+    ("Mejora de la resistencia", "Mejora de la resistencia"),
+    ("Pérdida de peso", "Pérdida de peso"),
+    ("Mantenimiento de la salud", "Mantenimiento de la salud"),
+    ("Mejorar la salud mental", "Mejorar la salud mental"),
+    ("Aumentar la fuerza", "Aumentar la fuerza"),
+    ("Ganancia muscular", "Ganancia muscular"),
+    ("Preparación deportiva", "Preparación deportiva"),
+    ("Mejora de la flexibilidad", "Mejora de la flexibilidad"),
+    ("Mejorar la movilidad", "Mejorar la movilidad"),
+    ("Mejorar la postura", "Mejorar la postura"),
+    ("Rehabilitación tras lesión", "Rehabilitación tras lesión")
+]
+
+CONDITION_CHOICES = [
+    ("Ninguna", "Ninguna"),
+    ("Hipertensión", "Hipertensión"),
+    ("Diabetes", "Diabetes"),
+    ("Asma", "Asma"),
+    ("Dolor de espalda", "Dolor de espalda"),
+    ("Lesión de rodilla", "Lesión de rodilla"),
+    ("Embarazo", "Embarazo"),
+    ("Osteoporosis", "Osteoporosis"),
+    ("Artritis", "Artritis"),
+    ("Enfermedad cardíaca", "Enfermedad cardíaca"),
+    ("Sobrepeso", "Sobrepeso"),
+    ("Ansiedad", "Ansiedad"),
+    ("Depresión", "Depresión"),
+    ("EPOC", "EPOC"),
+    ("Escoliosis", "Escoliosis"),
+    ("Lesión", "Lesión"),
+    ("Otra", "Otra"),
+]
+
+EQUIPMENT_CHOICES = [
+    ("Casa", "Casa"),
+    ("Gimnasio", "Gimnasio"),
+    ("AireLibre", "Aire libre"),
+    ("Mancuernas", "Mancuernas"),
+    ("Barras", "Barras"),
+    ("Máquinas", "Máquinas"),
+    ("Poleas", "Poleas"),
+    ("BandasElásticas", "Bandas elásticas"),
+    ("Kettlebell", "Kettlebell"),
+    ("TRX", "TRX"),
+    ("Banco", "Banco"),
+    ("Esterilla", "Esterilla"),
+    ("CuerdaSaltadora", "Cuerda saltadora"),
+    ("BalónMedicinal", "Balón medicinal"),
+]
+
+ENVIRONMENT_CHOICES = [
+    ("Casa", "Casa"),
+    ("Gimnasio", "Gimnasio"),
+    ("AireLibre", "Aire libre"),
+]
+
 
 class HealthProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -24,12 +81,12 @@ class HealthProfile(models.Model):
     weight_kg = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     # --- Objetivos y condiciones ---
-    goals         = models.ManyToManyField('Goal', blank=True, verbose_name=_("Objetivos"))
-    conditions    = models.ManyToManyField('Condition', blank=True, verbose_name=_("Condiciones"))
+    goals = models.TextField(blank=True, verbose_name=_("Objetivos"), help_text="Separados por coma. Opciones: " + ', '.join([g[0] for g in GOAL_CHOICES]))
+    conditions = models.TextField(blank=True, verbose_name=_("Condiciones"), help_text="Separados por coma. Opciones: " + ', '.join([c[0] for c in CONDITION_CHOICES]))
 
     # --- Entornos y equipamiento disponible ---
-    equipment     = models.ManyToManyField('Equipment', blank=True, verbose_name=_("Equipamiento"))
-    environment   = models.ManyToManyField('Environment', blank=True, verbose_name=_("Entorno"))
+    equipment = models.TextField(blank=True, verbose_name=_("Equipamiento"), help_text="Separados por coma. Opciones: " + ', '.join([e[0] for e in EQUIPMENT_CHOICES]))
+    environment = models.TextField(blank=True, verbose_name=_("Entorno"), help_text="Separados por coma. Opciones: " + ', '.join([e[0] for e in ENVIRONMENT_CHOICES]))
 
     # --- Datos importados (minutos semanales) ---
     imported_neat_min = models.PositiveIntegerField(null=True, blank=True, help_text="Actividad general (NEAT)")
@@ -52,24 +109,29 @@ class HealthProfile(models.Model):
     def __str__(self):
         return f"HealthProfile of {self.user.username}"
 
-class Goal(models.Model):
-    name = models.CharField(max_length=100)
-    def __str__(self):
-        return self.name
+    def get_goals_list(self):
+        return [g.strip() for g in self.goals.split(',') if g.strip()]
 
-class Condition(models.Model):
-    name = models.CharField(max_length=100)
-    def __str__(self):
-        return self.name
+    def set_goals_list(self, goals_list):
+        self.goals = ','.join(goals_list)
 
-class Equipment(models.Model):
-    name = models.CharField(max_length=100)
-    def __str__(self):
-        return self.name
-class Environment(models.Model):
-    name = models.CharField(max_length=100)
-    def __str__(self):
-        return self.name
+    def get_conditions_list(self):
+        return [c.strip() for c in self.conditions.split(',') if c.strip()]
+
+    def set_conditions_list(self, cond_list):
+        self.conditions = ','.join(cond_list)
+
+    def get_equipment_list(self):
+        return [e.strip() for e in self.equipment.split(',') if e.strip()]
+
+    def set_equipment_list(self, eq_list):
+        self.equipment = ','.join(eq_list)
+
+    def get_environment_list(self):
+        return [e.strip() for e in self.environment.split(',') if e.strip()]
+
+    def set_environment_list(self, env_list):
+        self.environment = ','.join(env_list)
 
 class HealthDataConsent(models.Model):
     """
@@ -92,6 +154,3 @@ class HealthDataConsent(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: consent={self.given}"
-
-from django.conf import settings
-from django.db import models

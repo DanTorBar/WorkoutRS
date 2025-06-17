@@ -15,16 +15,14 @@ def test_workouts_placeholder():
 
 @pytest.mark.django_db
 def test_workout_list_api():
-    client = APIClient()
     Workout.objects.create(workoutName="Rutina API", workoutCategory="", level="", gender="", bodyPart="", description="")
-    # El mock debe devolver una lista, porque ru_buscar normalmente devuelve una lista, no un queryset
     with patch("main.search.search.ru_buscar", side_effect=lambda *a, **kw: list(Workout.objects.all())):
+        client = APIClient()
         url = "/api/v1/workouts/"
         response = client.get(url)
     assert response.status_code == 200
     results = response.data.get("results", response.data)
     print("RESULTS:", results)
-    # Si results es un dict (paginación vacía), conviértelo en lista vacía
     if isinstance(results, dict):
         results = []
     assert any(w['workoutName'] == "Rutina API" for w in results)
@@ -98,7 +96,6 @@ def test_workout_retrieve_authenticated():
     data = response.data
     assert 'workout' in data
     assert 'days' in data
-    assert 'recommended' in data
     assert data['workout']['liked'] is False or data['workout']['liked'] is True
 
 @pytest.mark.django_db

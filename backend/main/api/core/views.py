@@ -1,13 +1,10 @@
 # main/api/core/views.py
 
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-
-from main.search.search import almacenar_datos
-from main.models.workout import Workout
-from main.models.exercise import Exercise
+from main.recommendations.recommender import recommend_exercises, recommend_workouts
 
 
 class PopulateDatabaseAPIView(APIView):
@@ -26,27 +23,22 @@ class PopulateDatabaseAPIView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-def recommend_workouts(id):
-    # # Obtener todas las rutinas
-    # rutinas = list(Workout.objects.all().values(
-    #     "id", "workoutName", "workoutCategory", "level", "gender", "bodyPart", "description"
-    # ))
+class RecommendExercisesAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    # # Obtener las recomendaciones
-    # recomendaciones = calcular_similitud(rutinas, id, ["workoutName", "workoutCategory", "level", "gender", "bodyPart"], 5)
+    def get(self, request):
+        user_id = request.user.id
+        df = recommend_exercises(user_id, top_n=5)
+        data = df.to_dict(orient='records')
+        return Response(data)
 
-    # return recomendaciones
-    return []
 
-def recommend_exercises(id):
-    # # Obtener todos los ejercicios
-    # ejercicios = list(Exercise.objects.all().values(
-    #     "id", "exerciseName", "exerciseCategory", "priMuscles", "secMuscles"
-    # ))
+class RecommendWorkoutsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    # # Obtener las recomendaciones
-    # recomendaciones = calcular_similitud(ejercicios, id, ["exerciseName", "exerciseCategory", "exerciseCategory", "priMuscles", "secMuscles"], 5)
-
-    # return recomendaciones
-    return []
+    def get(self, request):
+        user_id = request.user.id
+        df = recommend_workouts(user_id, top_n=5)
+        data = df.to_dict(orient='records')
+        return Response(data)
 

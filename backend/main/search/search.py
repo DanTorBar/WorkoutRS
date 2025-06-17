@@ -187,8 +187,11 @@ def ru_buscar(name, cat, level, gender, user, order='name'):
         query = parser.parse(query_string)
         results = searcher.search(query, limit=100)
         ids = [r['idWorkout'] for r in results]
+        print(ids)
     
     rutinas = list(Workout.objects.filter(id__in=ids).select_related())
+    print(query)
+    print(rutinas)
     
     if order == 'name':
         rutinas = sorted(rutinas, key=lambda x: x.workoutName.lower())

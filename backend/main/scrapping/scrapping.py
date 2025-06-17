@@ -20,7 +20,8 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-from main.LLM_processing.translator_module import translate_text
+from main.data_transformation.translator_module import translate_text
+from main.data_transformation.equipment_classifier import classify_equipment
 
 # lineas para evitar error SSL
 if not os.environ.get("PYTHONHTTPSVERIFY", "") and getattr(
@@ -33,6 +34,8 @@ def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, 
     exerciseName_es = translate_text(exerciseName)
     exerciseCategory_es = translate_text(exerciseCategory)
     instructions_es = translate_text(instructions)
+    
+    equipment_es = classify_equipment(exercise_name=exerciseName_es, instructions=instructions_es)
     
     print(exerciseName_es)
 
@@ -50,6 +53,7 @@ def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, 
             "exerciseCategory": exerciseCategory_es,
             "video": video,
             "instructions": instructions_es,
+            "equipment": equipment_es,
             "likes_count": 0,
         },
     )

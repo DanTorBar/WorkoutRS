@@ -3,20 +3,23 @@ from datetime import date
 from main.constants import ACTIVITY_LEVEL_CHOICES
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-
-from main.models.users import HealthProfile, HealthDataConsent, Goal, Condition, Equipment
+from main.models.users import HealthProfile, HealthDataConsent
 
 class HealthProfileSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
     bmi = serializers.SerializerMethodField()
+    goals = serializers.ListField(child=serializers.CharField(), required=False)
+    conditions = serializers.ListField(child=serializers.CharField(), required=False)
+    equipment = serializers.ListField(child=serializers.CharField(), required=False)
+    environment = serializers.ListField(child=serializers.CharField(), required=False)
 
     class Meta:
         model = HealthProfile
         fields = [
             'first_name', 'last_name', 'date_of_birth', 'gender', 'height_cm',
-            'weight_kg', 'age', 'bmi', 'goals', 'medical_conditions', 'environments',
-            'available_equipment', 'imported_neat_min', 'imported_cardio_mod_min',
-            'imported_cardio_vig_min', 'imported_strength_min', 'neat_level', 'cardio_mod_level',
+            'weight_kg', 'age', 'bmi', 'goals', 'conditions', 'environment', 'equipment',
+            'imported_neat_min', 'imported_cardio_mod_min',
+            'imported_cardio_vig_min', 'neat_level', 'cardio_mod_level',
             'cardio_vig_level', 'strength_level', 'created_at', 'updated_at'
         ]
 
@@ -34,26 +37,24 @@ class HealthProfileSerializer(serializers.ModelSerializer):
             return round(float(obj.weight_kg) / (height_m ** 2), 2)
         return None
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['goals'] = instance.get_goals_list()
+        data['conditions'] = instance.get_conditions_list()
+        data['equipment'] = instance.get_equipment_list()
+        data['environment'] = instance.get_environment_list()
+        return data
+
+    def to_internal_value(self, data):
+        ret = super().to_internal_value(data)
+        # Convert lists to comma-separated strings
+        ret['goals'] = ','.join(data.get('goals', []))
+        ret['conditions'] = ','.join(data.get('conditions', []))
+        ret['equipment'] = ','.join(data.get('equipment', []))
+        ret['environment'] = ','.join(data.get('environment', []))
+        return ret
+
 User = get_user_model()
-
-class HealthProfileSerializer(serializers.ModelSerializer):
-    goals      = serializers.PrimaryKeyRelatedField(many=True, queryset=Goal.objects.all(), required=False)
-    conditions = serializers.PrimaryKeyRelatedField(many=True, queryset=Condition.objects.all(), required=False)
-    equipment  = serializers.PrimaryKeyRelatedField(many=True, queryset=Equipment.objects.all(), required=False)
-
-    neat_level       = serializers.ChoiceField(choices=ACTIVITY_LEVEL_CHOICES, required=False)
-    cardio_mod_level = serializers.ChoiceField(choices=ACTIVITY_LEVEL_CHOICES, required=False)
-    cardio_vig_level = serializers.ChoiceField(choices=ACTIVITY_LEVEL_CHOICES, required=False)
-    strength_level   = serializers.ChoiceField(choices=ACTIVITY_LEVEL_CHOICES, required=False)
-
-    class Meta:
-        model = HealthProfile
-        fields = [
-            'first_name', 'last_name', 'date_of_birth', 'gender',
-            'height_cm', 'weight_kg',
-            'goals', 'conditions', 'equipment', 'environment',
-            'neat_level', 'cardio_mod_level', 'cardio_vig_level', 'strength_level',
-        ]
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -76,39 +77,22 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # 1) Extraer y validar consentimiento
         consent = validated_data.pop('health_data_consent')
-
         # 2) Extraer datos de perfil
         profile_data = validated_data.pop('profile')
-
         # 3) Crear usuario
         password = validated_data.pop('password')
         user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
-
         # 4) Crear registro de consentimiento
         HealthDataConsent.objects.create(
             user=user,
             given=consent,
             given_at=timezone.now()
         )
-
         # 5) Crear HealthProfile
-        m2m = {
-            'goals':      profile_data.pop('goals', []),
-            'conditions': profile_data.pop('conditions', []),
-            'equipment':  profile_data.pop('equipment', [])
-        }
-        profile = HealthProfile.objects.create(user=user, **profile_data)
-
-        # 6) Asignar M2M
-        if m2m['goals']:
-            profile.goals.set(m2m['goals'])
-        if m2m['conditions']:
-            profile.conditions.set(m2m['conditions'])
-        if m2m['equipment']:
-            profile.equipment.set(m2m['equipment'])
-
+        profile_data['user'] = user
+        profile = HealthProfile.objects.create(**profile_data)
         return user
 
 class UserSerializer(serializers.ModelSerializer):

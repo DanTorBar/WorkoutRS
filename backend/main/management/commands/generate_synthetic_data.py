@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from main.models.exercise import Exercise
 from main.models.workout import Workout
 from main.models.social import Favourite, Comment
-from main.models.users import Condition, Environment, Equipment, Goal, HealthProfile
+from main.models.users import HealthProfile, GOAL_CHOICES, CONDITION_CHOICES, EQUIPMENT_CHOICES, ENVIRONMENT_CHOICES
 from main.models.logs import ViewLog
 from django.contrib.contenttypes.models import ContentType
 
@@ -65,6 +65,12 @@ ENV_TO_WK = {
     'Aire Libre':['Caminar','Solo entrenamiento de cardio','Entrenamiento de carrera y competición']
 }
 
+# Sustituir la obtención de valores por listas de strings
+GOAL_LIST = [g[0] for g in GOAL_CHOICES]
+CONDITION_LIST = [c[0] for c in CONDITION_CHOICES]
+EQUIPMENT_LIST = [e[0] for e in EQUIPMENT_CHOICES]
+ENVIRONMENT_LIST = [e[0] for e in ENVIRONMENT_CHOICES]
+
 class Command(BaseCommand):
     help = 'Genera usuarios sintéticos y datos de interacción sesgados por objetivos, equipamiento y entorno'
 
@@ -82,10 +88,10 @@ class Command(BaseCommand):
         # Carga datos estáticos
         exercises  = list(Exercise.objects.all())
         workouts   = list(Workout.objects.all())
-        goals      = list(Goal.objects.all())
-        conditions = list(Condition.objects.all())
-        equipments = list(Equipment.objects.all())
-        environments = list(Environment.objects.all())
+        goals      = GOAL_LIST
+        conditions = CONDITION_LIST
+        equipments = EQUIPMENT_LIST
+        environments = ENVIRONMENT_LIST
         ex_ct      = ContentType.objects.get_for_model(Exercise)
         wk_ct      = ContentType.objects.get_for_model(Workout)
 
@@ -108,25 +114,26 @@ class Command(BaseCommand):
                     cardio_vig_level=random.randint(0,5),
                     strength_level=random.randint(0,5),
                 )
-                # Asignar M2M
+                # Asignar valores como strings separados por coma
                 chosen_goals = random.sample(goals, k=random.randint(1,2))
-                prof.goals.set(chosen_goals)
-                prof.conditions.set(random.sample(conditions, k=random.randint(0,1)))
-                prof.equipment.set(random.sample(equipments, k=random.randint(1,3)))
-                prof.environment.set(random.sample(environments, k=1))  # uno por usuario
+                prof.goals = ','.join(chosen_goals)
+                prof.conditions = ','.join(random.sample(conditions, k=random.randint(0,1)))
+                prof.equipment = ','.join(random.sample(equipments, k=random.randint(1,3)))
+                prof.environment = ','.join(random.sample(environments, k=1))
+                prof.save()
 
                 # Definir preferencias según objetivos, equipamiento y entorno
                 ex_pref = set()
                 wk_pref = set()
                 for g in chosen_goals:
-                    ex_pref.update(GOAL_TO_EX.get(g.name, []))
-                    wk_pref.update(GOAL_TO_WK.get(g.name, []))
+                    ex_pref.update(GOAL_TO_EX.get(g, []))
+                    wk_pref.update(GOAL_TO_WK.get(g, []))
                 # añadir equipamiento
-                ex_pref.update([e.name for e in prof.equipment.all()])
-                # añadir entorno
-                env_name = prof.environment.first().name
-                ex_pref.update(ENV_TO_EQUIP.get(env_name, []))
-                wk_pref.update(ENV_TO_WK.get(env_name, []))
+                ex_pref.update([e for e in prof.get_equipment_list()])
+                env_name = prof.get_environment_list()[0] if prof.get_environment_list() else None
+                if env_name:
+                    ex_pref.update(ENV_TO_EQUIP.get(env_name, []))
+                    wk_pref.update(ENV_TO_WK.get(env_name, []))
 
                 # 2) Generar interacciones sesgadas
                 for _ in range(inter_per_user):

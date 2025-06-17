@@ -61,18 +61,17 @@ def test_register_login_logout_me():
             "first_name": "Test",
             "last_name": "User",
             "date_of_birth": "1990-01-01",
-            "gender": "M",
+            "gender": "masculino",
             "height_cm": 180,
             "weight_kg": 75,
-            # Los campos M2M pueden omitirse o enviarse como listas vacías
             "goals": [],
             "conditions": [],
             "equipment": [],
-            "environment": "home",
-            "neat_level": "low",
-            "cardio_mod_level": "low",
-            "cardio_vig_level": "low",
-            "strength_level": "low"
+            "environment": [],
+            "neat_level": 1,
+            "cardio_mod_level": 1,
+            "cardio_vig_level": 1,
+            "strength_level": 1
         }
     }
     response = client.post(url, data, format="json")

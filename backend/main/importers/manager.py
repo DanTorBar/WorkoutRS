@@ -7,15 +7,12 @@ from main.importers.garmin.importer import GarminImporter
 from main.importers.fitbit.importer import FitbitImporter
 from main.importers.apple.importer import AppleImporter
 from main.importers.googlefit.importer import GoogleFitImporter
-# importa el resto...
 
 IMPORTERS = {
     'garmin': GarminImporter,
     'fitbit': FitbitImporter,
     'apple': AppleImporter,
     'googlefit': GoogleFitImporter,
-    # 'samsung': SamsungImporter,
-    # 'zepp': ZeppImporter,
 }
 
 
@@ -48,14 +45,6 @@ def import_health_data(user, file_obj, source_key):
         profile.strength_level = minutes_to_level(parsed['imported_strength_min'])
 
     profile.save()
-
-    
-    # Log de importación
-    ActivityLog.objects.create(
-        user=user,
-        action='IMPORT',
-        detail=f"Imported from {source_key}: {profile}"
-    )
 
     return parsed
 
