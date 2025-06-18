@@ -15,6 +15,7 @@ from main.tasks import revoke_health_data
 from .serializers import (
     RegisterSerializer,
     UserSerializer,
+    UserFullProfileSerializer,
 )
 
 User = get_user_model()
@@ -144,4 +145,15 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         """ Alias de CurrentUserAPIView """
         serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
+class UserFullProfileAPIView(APIView):
+    """
+    GET /api/v1/users/perfil-completo/
+    Devuelve todos los datos del usuario, perfil de salud y consentimiento.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserFullProfileSerializer(request.user)
         return Response(serializer.data)

@@ -111,3 +111,15 @@ class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username']
+
+class UserFullProfileSerializer(serializers.ModelSerializer):
+    health_profile = HealthProfileSerializer(source="healthprofile", read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'health_profile', 'is_staff'
+        ]
+        read_only_fields = ['id', 'username', 'email', 'is_staff']
+

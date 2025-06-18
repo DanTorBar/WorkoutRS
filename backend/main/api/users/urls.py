@@ -10,6 +10,7 @@ from .views import (
     HealthDataPreImportAPIView,
     RevokeHealthDataConsentAPIView,
     UserViewSet,
+    UserFullProfileAPIView,
 )
 
 router = DefaultRouter()
@@ -30,6 +31,9 @@ urlpatterns = [
     # Import preview y revocación de consentimiento
     path("<str:service_key>/preimport/", HealthDataPreImportAPIView.as_view(), name="health-preimport"),
     path("revoke-consent/", RevokeHealthDataConsentAPIView.as_view(), name="revoke-consent"),
+
+    # Perfil completo de usuario (GET)
+    path("profile/", UserFullProfileAPIView.as_view(), name="user-full-profile"),
 
     # CRUD de usuarios
     path("", include(router.urls)),

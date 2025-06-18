@@ -56,17 +56,16 @@ export default function ServiceChoice({
         {services.map(({ id, label, Icon, HoverIcon }) => {
           const isHover = hovered === id;
           const WrapperIcon = isHover ? HoverIcon : Icon;
-
-          console.log(WrapperIcon);
-          
+          const isDisabled = id === 'garmin';
           return (
             <div
               key={id}
-              onClick={() => onSelect(id as any)}
+              onClick={() => !isDisabled && onSelect(id as any)}
               onMouseEnter={() => setHovered(id)}
               onMouseLeave={() => setHovered(null)}
               className={`cursor-pointer border border-border rounded-lg p-6 flex flex-col items-center justify-center transition \
-                ${isHover ? 'bg-primary text-surface' : 'bg-surface text-text'}`}
+                ${isHover ? 'bg-primary text-surface' : 'bg-surface text-text'} \
+                ${isDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
             >
               <WrapperIcon className={`w-8 h-8 mb-2 ${id === 'garmin' ? 'w-16 !important' : ''}`} />
               <span className="text-center font-medium">

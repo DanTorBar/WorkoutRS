@@ -102,8 +102,8 @@ export default function HealthProfileForm({ defaultValues = {}, onBack, onSubmit
   const [form, setForm] = useState<FormType>({
     first_name: defaultValues.first_name || '',
     last_name:  defaultValues.last_name  || '',
-    birth_date: defaultValues.birth_date || '',
-    gender:     defaultValues.gender     || '',
+    birth_date: (defaultValues.birth_date || defaultValues.date_of_birth || '').slice(0, 10),
+    gender:     defaultValues.gender ? String(defaultValues.gender).toLowerCase() : '',
     weight:     defaultValues.weight     || '',
     height:     defaultValues.height     || '',
     goals:      defaultValues.goals ? (Array.isArray(defaultValues.goals) ? defaultValues.goals : defaultValues.goals.split(',')) : [],
@@ -133,31 +133,19 @@ export default function HealthProfileForm({ defaultValues = {}, onBack, onSubmit
               )
             )
         )
-      )
+      ),
+      birth_date: (defaultValues.birth_date || defaultValues.date_of_birth || '').slice(0, 10),
+      gender: defaultValues.gender ? String(defaultValues.gender).toLowerCase() : f.gender,
     }));
   }, [defaultValues]);
 
   // Detecta qué campos han sido autocompletados
-  const autoFilled = React.useMemo(() => {
-    const keys = [
-      'first_name', 'last_name', 'birth_date', 'gender',
-      'weight', 'height', 'goals', 'conditions', 'equipment', 'environment',
-      'neat_level', 'cardio_mod_level', 'cardio_vig_level', 'strength_level',
-    ];
-    const result: Record<string, boolean> = {};
-    keys.forEach(k => {
-      if (
-        defaultValues[k] !== undefined &&
-        defaultValues[k] !== '' &&
-        defaultValues[k] !== null &&
-        // Solo marcar si viene de importación (no si el usuario lo edita)
-        (defaultValues.imported_neat_min !== undefined || defaultValues.imported_cardio_mod_min !== undefined || defaultValues.imported_cardio_vig_min !== undefined || defaultValues.imported_strength_min !== undefined || defaultValues.height_cm !== undefined || defaultValues.weight_kg !== undefined)
-      ) {
-        result[k] = true;
-      }
-    });
-    return result;
-  }, [defaultValues]);
+  const autoFilled = React.useMemo(() => ({
+    neat_level: defaultValues.imported_neat_min !== undefined,
+    cardio_mod_level: defaultValues.imported_cardio_mod_min !== undefined,
+    cardio_vig_level: defaultValues.imported_cardio_vig_min !== undefined,
+    strength_level: defaultValues.imported_strength_min !== undefined,
+  }), [defaultValues]);
 
   // Validaciones por paso
   const validStep = [

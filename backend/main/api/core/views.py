@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from main.search.search import almacenar_datos
 from main.recommendations.recommender import recommend_exercises, recommend_workouts
+from main.api.core.serializers import RecommendedWorkoutSerializer, RecommendedExerciseSerializer
+from main.models.exercise import Exercise
+from main.models.workout import Workout
 
 
 class PopulateDatabaseAPIView(APIView):
@@ -29,8 +32,9 @@ class RecommendExercisesAPIView(APIView):
     def get(self, request):
         user_id = request.user.id
         df = recommend_exercises(user_id, top_n=5)
-        data = df.to_dict(orient='records')
-        return Response(data)
+        exercises = Exercise.objects.filter(id__in=df['id'].tolist())
+        serialized = RecommendedExerciseSerializer(exercises, many=True)
+        return Response(serialized.data)
 
 
 class RecommendWorkoutsAPIView(APIView):
@@ -39,6 +43,7 @@ class RecommendWorkoutsAPIView(APIView):
     def get(self, request):
         user_id = request.user.id
         df = recommend_workouts(user_id, top_n=5)
-        data = df.to_dict(orient='records')
-        return Response(data)
+        workouts = Workout.objects.filter(id__in=df['id'].tolist())
+        serialized = RecommendedWorkoutSerializer(workouts, many=True)
+        return Response(serialized.data)
 

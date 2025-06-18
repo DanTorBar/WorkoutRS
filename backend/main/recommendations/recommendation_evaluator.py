@@ -1,4 +1,12 @@
 # recommendation_evaluator.py
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "WorkoutRS.settings")
+import django
+django.setup()
+
 import pandas as pd
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType

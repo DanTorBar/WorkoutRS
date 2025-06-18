@@ -71,7 +71,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         """
-        retrieve + recomendaciones:
+        retrieve:
         GET /api/v1/exercises/{pk}/
         """
         instance = self.get_object()
@@ -84,15 +84,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             object_id = instance.pk
         )
 
-        # calcular recomendaciones (lista de dicts con al menos 'idExercise' o 'id')
-        recs = recommend_exercises(instance.id)
-        # convertir a instancias para usar el serializer
-        rec_ids = [r.get('idExercise') or r.get('id') for r in recs]
-        rec_qs  = Exercise.objects.filter(id__in=rec_ids)
-        rec_ser = self.get_serializer(rec_qs, many=True)
-
         data = ser.data
-        data['recommendations'] = rec_ser.data
         return Response(data)
 
 
