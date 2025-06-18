@@ -15,14 +15,14 @@ export default function ServiceChoice({
   onSelect,
   onBack,
 }: {
-  onSelect: (service: 'google' | 'apple' | 'fitbit' | 'garmin') => void;
+  onSelect: (service: 'googlefit' | 'apple' | 'fitbit' | 'garmin') => void;
   onBack: () => void;
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
 
   const services = [
     {
-      id: 'google',
+      id: 'googlefit',
       label: 'Google Fit',
       Icon: SiGooglefit,
       HoverIcon: GoogleFitHover,

@@ -8,7 +8,7 @@ export default function FileUploader({
   onNext,
   onBack,
 }: {
-  serviceType: 'google' | 'apple' | 'fitbit' | 'garmin';
+  serviceType: 'googlefit' | 'apple' | 'fitbit' | 'garmin';
   onNext: (data: any) => void;
   onBack: () => void;
 }) {
@@ -16,7 +16,7 @@ export default function FileUploader({
   const [error, setError] = useState<string | null>(null);
 
   const instructions: Record<string, string> = {
-    google: 'Exporta tu archivo .zip desde Google Fit: abre la app > Configuración > Exportar datos.',
+    googlefit: 'Exporta tu archivo .zip desde Google Fit: abre la app > Configuración > Exportar datos.',
     apple: 'Usa Apple Health en iPhone: exporta tus datos de salud a un ZIP desde la app Salud.',
     fitbit: 'En Fitbit, ve a Cuenta > Sistema > Exportar tus datos en un archivo ZIP.',
     garmin: 'Desde Garmin Connect, ve a Configuración > Exportar datos y descarga el ZIP.',
@@ -35,7 +35,7 @@ export default function FileUploader({
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}imports/`,
+        `${process.env.NEXT_PUBLIC_API_URL}imports/preimport/`,
         { method: 'POST', body: fd }
       );
       if (!res.ok) throw new Error('Error al procesar el archivo');

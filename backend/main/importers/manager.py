@@ -17,10 +17,6 @@ IMPORTERS = {
 
 
 def import_health_data(user, file_obj, source_key):
-    # Verifica si el usuario tiene consentimiento para importar datos de salud
-    # consent = getattr(user, 'health_data_consent', None)
-    # if not consent or not consent.given:
-    #     raise PermissionDenied("No tienes permiso para importar datos de salud sin consentimiento.")
 
     cls = IMPORTERS.get(source_key.lower())
     if not cls:
@@ -45,6 +41,26 @@ def import_health_data(user, file_obj, source_key):
         profile.strength_level = minutes_to_level(parsed['imported_strength_min'])
 
     profile.save()
+
+    return parsed
+
+
+def preparse_health_data(file_obj, source_key):
+    cls = IMPORTERS.get(source_key.lower())
+    if not cls:
+        raise ValidationError(f"Origen no soportado: {source_key}")
+    importer = cls(file_obj)
+    parsed = importer.parse()
+
+    # Asigna los niveles manuales según los minutos importados (igual que import_health_data, pero solo en el dict)
+    if parsed.get('imported_neat_min') is not None:
+        parsed['neat_level'] = minutes_to_level(parsed['imported_neat_min'])
+    if parsed.get('imported_cardio_mod_min') is not None:
+        parsed['cardio_mod_level'] = minutes_to_level(parsed['imported_cardio_mod_min'])
+    if parsed.get('imported_cardio_vig_min') is not None:
+        parsed['cardio_vig_level'] = minutes_to_level(parsed['imported_cardio_vig_min'])
+    if parsed.get('imported_strength_min') is not None:
+        parsed['strength_level'] = minutes_to_level(parsed['imported_strength_min'])
 
     return parsed
 

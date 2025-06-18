@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from main.search.search import almacenar_datos
 from main.recommendations.recommender import recommend_exercises, recommend_workouts
 
 
@@ -16,8 +17,7 @@ class PopulateDatabaseAPIView(APIView):
 
     def post(self, request):
         try:
-            # mensaje = almacenar_datos()
-            mensaje = "Datos almacenados [MOCK]"
+            mensaje = almacenar_datos()
             return Response({'mensaje': mensaje}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

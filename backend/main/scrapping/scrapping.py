@@ -1,24 +1,24 @@
 # encoding:utf-8
 
+import os
+import sys
+
+# Añadir la raíz del proyecto al sys.path para que funcione como módulo
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+import re, ssl, django
 from bs4 import BeautifulSoup
 import urllib.request
 from tkinter import *
-import re, os, ssl, sys, django
 import requests
 import socket
 from datetime import datetime
 
-from main.models.exercise import Exercise, Muscle
-from main.models.workout import Workout, WorkoutExercise
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "WorkoutRS.settings")
-
-import django
-
 django.setup()
 
+from main.models.exercise import Exercise, Muscle
+from main.models.workout import Workout, WorkoutExercise
 from django.contrib.auth.models import User
 from main.data_transformation.translator_module import translate_text
 from main.data_transformation.equipment_classifier import classify_equipment
@@ -58,14 +58,9 @@ def store_exercise(id_, exerciseName, exerciseCategory, priMuscles, secMuscles, 
         },
     )
     if created:
-        print(exercise.__dict__)
         exercise.priMuscles.set(primary_muscles)
         exercise.secMuscles.set(secondary_muscles)
         exercise.save()
-
-    #     print(f"Ejercicio '{exerciseName}' creado.")
-    # else:
-    #     print(f"Ejercicio '{exerciseName}' ya existía.")
 
 
 def store_workout(workoutName, workoutCategory, level, gender, bodyPart, description, days):
@@ -100,14 +95,6 @@ def store_workout(workoutName, workoutCategory, level, gender, bodyPart, descrip
 
     workout.save()
     print(f"Rutina '{workoutName}' almacenada.")
-    print(workout.__dict__)
-    # print("Día 1: ", workout.dia_1.all())
-    # print("Día 2: ", workout.dia_2.all())
-    # print("Día 3: ", workout.dia_3.all())
-    # print("Día 4: ", workout.dia_4.all())
-    # print("Día 5: ", workout.dia_5.all())
-    # print("Día 6: ", workout.dia_6.all())
-    # print("Día 7: ", workout.dia_7.all())
     print("---------------------")
 
 
@@ -145,16 +132,19 @@ def extraer_rutinas_y_ejercicios():
         body = file.read()
 
     try:
+        # NO SE HACE SOLICITUD A LA PÁGINA PRINCIPAL DIRECTAMENTE POR PROBLEMAS TÉCNICOS
+        
         # Realizar la solicitud POST
-        response = requests.post(url, headers=headers, data=body, timeout=50)
+        # response = requests.post(url, headers=headers, data=body, timeout=50)
 
         # Usar el HTML de la respuesta si la solicitud fue exitosa, si no, usar el HTML en bruto
-        if response.status_code == 200:
-            html_content = response.text
-        else:
-            with open("main/scrapping/data/request.html", "r") as file:
-                respuesta = file.read()
-            html_content = respuesta
+        # if response.status_code == 200:
+        #     html_content = response.text
+        #     print(html_content)
+        # else:
+        with open("main/scrapping/data/request.html", "r") as file:
+            respuesta = file.read()
+        html_content = respuesta
 
         # Comprobar si hay contenido para procesar
         if html_content:
@@ -491,5 +481,9 @@ def extraer_rutinas_y_ejercicios():
     print("Datos de rutinas y ejercicios almacenados en la base de datos.")
 
 
-if __name__ == "__main__":
+def main():
     extraer_rutinas_y_ejercicios()
+
+
+if __name__ == "__main__":
+    main()

@@ -3,7 +3,7 @@
 import React, { FormEvent, useState } from "react";
 import { User, Mail, Lock } from "lucide-react";
 
-export default function StepOneForm({ onNext }: { onNext: () => void }) {
+export default function StepOneForm({ onNext }: { onNext: (form: any) => void }) {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [touched, setTouched] = useState({ u: false, e: false, p: false });
 
@@ -20,7 +20,7 @@ export default function StepOneForm({ onNext }: { onNext: () => void }) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (isValid) onNext();
+    if (isValid) onNext(form);
     else setTouched({ u: true, e: true, p: true });
   };
 

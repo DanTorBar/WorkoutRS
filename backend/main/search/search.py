@@ -47,7 +47,7 @@ def almacenar_datos():
     writer_rutina = ix_rutina.writer()
 
     start_time = time.time()
-    # extraer_rutinas_y_ejercicios()
+    extraer_rutinas_y_ejercicios()
     end_time = time.time()
 
     print(f"Tiempo de extracción: {end_time - start_time} segundos")
@@ -190,8 +190,6 @@ def ru_buscar(name, cat, level, gender, user, order='name'):
         print(ids)
     
     rutinas = list(Workout.objects.filter(id__in=ids).select_related())
-    print(query)
-    print(rutinas)
     
     if order == 'name':
         rutinas = sorted(rutinas, key=lambda x: x.workoutName.lower())
